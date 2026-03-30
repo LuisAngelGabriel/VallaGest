@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import edu.ucne.vallagest.presentation.home.HomeScreen
+import edu.ucne.vallagest.presentation.login.LoginScreen
 
 @Composable
 fun VallaGestNavHost(
@@ -16,13 +18,22 @@ fun VallaGestNavHost(
         composable<Screen.Login> {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(Screen.Home)
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Login) { inclusive = true }
+                    }
+                },
+                onNavigateToRegister = {
                 }
             )
         }
 
+        // Pantalla de Home
         composable<Screen.Home> {
-            HomeScreen()
+            HomeScreen(
+                onDrawer = { },
+                goToValla = { /* Navegación de vallas quitada */ },
+                createValla = { /* Navegación de vallas quitada */ }
+            )
         }
     }
 }
