@@ -11,4 +11,7 @@ sealed class Screen {
 
     @Serializable
     object Register : Screen()
+
+    @Serializable
+    object Perfil : Screen()
 }
