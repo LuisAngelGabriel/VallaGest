@@ -22,16 +22,22 @@ class RegisterViewModel @Inject constructor(
 
     fun onEvent(event: RegisterEvent) {
         when (event) {
-            is RegisterEvent.NombreChanged -> _state.update { it.copy(nombre = event.nombre) }
-            is RegisterEvent.EmailChanged -> _state.update { it.copy(email = event.email) }
-            is RegisterEvent.ClaveChanged -> _state.update { it.copy(clave = event.clave) }
-            is RegisterEvent.ConfirmarClaveChanged -> _state.update { it.copy(confirmarClave = event.clave) }
+            is RegisterEvent.NombreChanged -> _state.update { it.copy(nombre = event.nombre, error = null) }
+            is RegisterEvent.EmailChanged -> _state.update { it.copy(email = event.email, error = null) }
+            is RegisterEvent.ClaveChanged -> _state.update { it.copy(clave = event.clave, error = null) }
+            is RegisterEvent.ConfirmarClaveChanged -> _state.update { it.copy(confirmarClave = event.clave, error = null) }
             is RegisterEvent.OnRegister -> registrar()
         }
     }
 
     private fun registrar() {
         val s = _state.value
+
+        if (s.nombre.isBlank() || s.email.isBlank() || s.clave.isBlank() || s.confirmarClave.isBlank()) {
+            _state.update { it.copy(error = "Todos los campos son obligatorios") }
+            return
+        }
+
         if (s.clave != s.confirmarClave) {
             _state.update { it.copy(error = "Las contraseñas no coinciden") }
             return
