@@ -3,10 +3,7 @@ package edu.ucne.vallagest.presentation.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -25,15 +21,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import edu.ucne.vallagest.R
 import edu.ucne.vallagest.domain.vallas.model.Valla
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onDrawer: () -> Unit,
+    goToValla: (Int) -> Unit,
+    createValla: () -> Unit,
+    goToPerfil: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val usuario by viewModel.usuarioLogueado.collectAsStateWithLifecycle()
+    val isAdmin = usuario?.rol == "Admin"
     var searchText by remember { mutableStateOf("") }
 
     Scaffold(
@@ -61,10 +65,21 @@ fun HomeScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = goToPerfil,
                     icon = { Icon(Icons.Default.Person, null) },
                     label = { Text("Cuenta") }
                 )
+            }
+        },
+        floatingActionButton = {
+            if (isAdmin) {
+                FloatingActionButton(
+                    onClick = createValla,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                }
             }
         }
     ) { paddingValues ->
@@ -85,7 +100,7 @@ fun HomeScreen(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -112,27 +127,33 @@ fun HomeScreen(
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                             unfocusedBorderColor = Color.Transparent,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
                         )
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 
             if (state.isLoading) {
                 item(span = { GridItemSpan(2) }) {
-                    Box(
-                        modifier = Modifier.fillMaxHeight(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            } else if (state.vallas.isEmpty()) {
+                item(span = { GridItemSpan(2) }) {
+                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        Text("No hay vallas publicadas", color = Color.Gray)
                     }
                 }
             } else {
                 items(state.vallas) { valla ->
-                    VallaGridItem(valla)
+                    VallaGridItem(
+                        valla = valla,
+                        isAdmin = isAdmin,
+                        onEdit = { goToValla(valla.vallaId) },
+                        onDelete = { viewModel.onDelete(valla.vallaId) }
+                    )
                 }
             }
         }
@@ -140,7 +161,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun VallaGridItem(valla: Valla) {
+fun VallaGridItem(valla: Valla, isAdmin: Boolean, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -150,12 +171,21 @@ fun VallaGridItem(valla: Valla) {
     ) {
         Column {
             Box(modifier = Modifier.height(120.dp).fillMaxWidth()) {
-                Image(
-                    painter = painterResource(id = R.drawable.valla_placeholder),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (!valla.imagenUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = valla.imagenUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.valla_placeholder),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
                 Surface(
                     modifier = Modifier.padding(8.dp).align(Alignment.TopStart),
@@ -174,23 +204,24 @@ fun VallaGridItem(valla: Valla) {
                     )
                 }
 
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(32.dp)
-                        .align(Alignment.BottomEnd)
-                        .background(
-                            MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f),
-                            CircleShape
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AddShoppingCart,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
+                if (isAdmin) {
+                    Row(
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        IconButton(
+                            onClick = onEdit,
+                            modifier = Modifier.size(28.dp).background(MaterialTheme.colorScheme.primary, CircleShape)
+                        ) {
+                            Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(14.dp))
+                        }
+                        IconButton(
+                            onClick = onDelete,
+                            modifier = Modifier.size(28.dp).background(MaterialTheme.colorScheme.error, CircleShape)
+                        ) {
+                            Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.onError, modifier = Modifier.size(14.dp))
+                        }
+                    }
                 }
             }
 
@@ -234,7 +265,7 @@ fun VallaGridItem(valla: Valla) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "SAN FRANCISCO, RD",
+                        text = valla.ubicacion,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
