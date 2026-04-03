@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import edu.ucne.vallagest.presentation.home.HomeScreen
 import edu.ucne.vallagest.presentation.login.LoginScreen
+import edu.ucne.vallagest.presentation.register.RegisterScreen
 
 @Composable
 fun VallaGestNavHost(
@@ -23,16 +24,29 @@ fun VallaGestNavHost(
                     }
                 },
                 onNavigateToRegister = {
+                    navController.navigate(Screen.Register)
                 }
             )
         }
 
-        // Pantalla de Home
+        composable<Screen.Register> {
+            RegisterScreen(
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
+                },
+                onBackToLogin = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable<Screen.Home> {
             HomeScreen(
                 onDrawer = { },
-                goToValla = { /* Navegación de vallas quitada */ },
-                createValla = { /* Navegación de vallas quitada */ }
+                goToValla = { },
+                createValla = { }
             )
         }
     }
