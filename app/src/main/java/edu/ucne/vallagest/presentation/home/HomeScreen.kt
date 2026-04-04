@@ -33,6 +33,8 @@ fun HomeScreen(
     goToValla: (Int) -> Unit,
     createValla: () -> Unit,
     goToPerfil: () -> Unit,
+    goToCategorias: () -> Unit,
+    goToCarrito: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -53,13 +55,13 @@ fun HomeScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = goToCategorias,
                     icon = { Icon(Icons.Default.List, null) },
                     label = { Text("Categorias") }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = goToCarrito,
                     icon = { Icon(Icons.Default.ShoppingCart, null) },
                     label = { Text("Carrito") }
                 )
