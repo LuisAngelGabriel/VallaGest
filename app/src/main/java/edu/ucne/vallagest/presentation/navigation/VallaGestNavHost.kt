@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import edu.ucne.vallagest.presentation.categorias.edit.CategoriaEditScreen
+import edu.ucne.vallagest.presentation.categorias.list.CategoriaListScreen
 import edu.ucne.vallagest.presentation.home.HomeScreen
 import edu.ucne.vallagest.presentation.login.LoginScreen
 import edu.ucne.vallagest.presentation.perfil.PerfilScreen
@@ -46,10 +49,20 @@ fun VallaGestNavHost(
         composable<Screen.Home> {
             HomeScreen(
                 onDrawer = { },
-                goToValla = { },
-                createValla = { },
+                goToValla = { id ->
+                    navController.navigate(Screen.CategoriaEdit(categoriaId = id))
+                },
+                createValla = {
+                    navController.navigate(Screen.CategoriaEdit(categoriaId = 0))
+                },
                 goToPerfil = {
                     navController.navigate(Screen.Perfil)
+                },
+                goToCategorias = {
+                    navController.navigate(Screen.CategoriaList)
+                },
+                goToCarrito = {
+                    navController.navigate(Screen.Home)
                 }
             )
         }
@@ -65,10 +78,29 @@ fun VallaGestNavHost(
                     navController.navigate(Screen.Home)
                 },
                 onNavigateToCategorias = {
-                    navController.navigate(Screen.Home)
+                    navController.navigate(Screen.CategoriaList)
                 },
                 onNavigateToCarrito = {
                     navController.navigate(Screen.Home)
+                }
+            )
+        }
+
+        composable<Screen.CategoriaList> {
+            CategoriaListScreen(
+                onAdd = { navController.navigate(Screen.CategoriaEdit(0)) },
+                onEdit = { id -> navController.navigate(Screen.CategoriaEdit(id)) },
+                goToExplorar = { navController.navigate(Screen.Home) },
+                goToCarrito = { /* navController.navigate(Screen.Carrito) */ },
+                goToPerfil = { navController.navigate(Screen.Perfil) }
+            )
+        }
+        composable<Screen.CategoriaEdit> { backStackEntry ->
+            val args = backStackEntry.toRoute<Screen.CategoriaEdit>()
+            CategoriaEditScreen(
+                categoriaId = args.categoriaId,
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
