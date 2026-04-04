@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.vallagest.data.remote.Resource
 import edu.ucne.vallagest.domain.categorias.model.Categoria
 import edu.ucne.vallagest.domain.categorias.usecases.*
-import edu.ucne.vallagest.domain.usuarios.usecases.GetSessionUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,14 +14,11 @@ import javax.inject.Inject
 class CategoriaEditViewModel @Inject constructor(
     private val saveCategoriaUseCase: SaveCategoriaUseCase,
     private val updateCategoriaUseCase: UpdateCategoriaUseCase,
-    private val getCategoriaUseCase: GetCategoriaUseCase,
-    private val getSessionUseCase: GetSessionUseCase
+    private val getCategoriaUseCase: GetCategoriaUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoriaEditUiState())
     val uiState = _uiState.asStateFlow()
-
-    private var loadedRol: String? = null
 
     fun onEvent(event: CategoriaEditUiEvent) {
         when (event) {
@@ -42,7 +38,6 @@ class CategoriaEditViewModel @Inject constructor(
                 when (result) {
                     is Resource.Succes -> {
                         result.data?.let { cat ->
-                            loadedRol = cat.rol
                             _uiState.update { it.copy(
                                 isLoading = false,
                                 categoriaId = cat.categoriaId,
@@ -66,14 +61,10 @@ class CategoriaEditViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val session = getSessionUseCase().firstOrNull()
-            val finalRol = loadedRol ?: session?.rol ?: "Admin"
-
             val categoria = Categoria(
                 categoriaId = state.categoriaId,
                 nombre = state.nombre,
-                descripcion = state.descripcion,
-                rol = finalRol
+                descripcion = state.descripcion
             )
 
             val flow = if (categoria.categoriaId == 0) {

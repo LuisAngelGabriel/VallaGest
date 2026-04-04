@@ -4,5 +4,4 @@ data class CategoriaDto(
     val categoriaId: Int,
     val nombre: String,
     val descripcion: String,
-    val rol: String? = null
 )

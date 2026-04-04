@@ -7,27 +7,23 @@ import edu.ucne.vallagest.domain.categorias.model.Categoria
 fun CategoriaDto.toEntity() = CategoriaEntity(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion,
-    rol = rol
+    descripcion = descripcion
 )
 
 fun CategoriaEntity.toDomain() = Categoria(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion,
-    rol = rol
+    descripcion = descripcion
 )
 
 fun Categoria.toDto() = CategoriaDto(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion,
-    rol = rol
+    descripcion = descripcion
 )
 
 fun CategoriaDto.toDomain() = Categoria(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion,
-    rol = rol
+    descripcion = descripcion
 )
