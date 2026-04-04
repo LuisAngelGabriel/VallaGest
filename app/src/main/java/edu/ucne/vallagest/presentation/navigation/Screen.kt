@@ -14,4 +14,10 @@ sealed class Screen {
 
     @Serializable
     object Perfil : Screen()
+
+    @Serializable
+    object CategoriaList : Screen()
+
+    @Serializable
+    data class CategoriaEdit(val categoriaId: Int = 0) : Screen()
 }
