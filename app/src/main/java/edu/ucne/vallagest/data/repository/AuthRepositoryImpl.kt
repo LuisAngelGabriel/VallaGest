@@ -27,7 +27,7 @@ class AuthRepositoryImpl @Inject constructor(
             usuarioDao.saveUsuario(dto.toEntity())
             emit(Resource.Succes(Usuario(dto.usuarioId, dto.nombre, dto.email, dto.rol)))
         }.onFailure {
-            emit(Resource.Error(it.message ?: "Error"))
+            emit(Resource.Error(it.message ?: "Credenciales incorrectas"))
         }
     }
 
@@ -40,7 +40,7 @@ class AuthRepositoryImpl @Inject constructor(
             usuarioDao.saveUsuario(dto.toEntity())
             emit(Resource.Succes(Usuario(dto.usuarioId, dto.nombre, dto.email, dto.rol)))
         }.onFailure {
-            emit(Resource.Error(it.message ?: "Error"))
+            emit(Resource.Error(it.message ?: "Error en el registro"))
         }
     }
 
