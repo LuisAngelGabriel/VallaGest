@@ -10,10 +10,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import edu.ucne.vallagest.data.api.AuthApi
+import edu.ucne.vallagest.data.api.CategoriaApi
 import edu.ucne.vallagest.data.api.VallaApi
 import edu.ucne.vallagest.data.db.VallaGestDb
 import edu.ucne.vallagest.data.repository.AuthRepositoryImpl
+import edu.ucne.vallagest.data.repository.CategoriaRepositoryImpl
 import edu.ucne.vallagest.data.repository.VallaRepositoryImpl
+import edu.ucne.vallagest.domain.categorias.repository.CategoriaRepository
 import edu.ucne.vallagest.domain.usuarios.repository.AuthRepository
 import edu.ucne.vallagest.domain.vallas.repository.VallaRepository
 import javax.inject.Singleton
@@ -53,6 +56,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideCategoriaApi(retrofit: Retrofit): CategoriaApi {
+        return retrofit.create(CategoriaApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideVallaGestDb(@ApplicationContext context: Context): VallaGestDb {
         return Room.databaseBuilder(context, VallaGestDb::class.java, "VallaGest.db")
             .fallbackToDestructiveMigration()
@@ -66,10 +75,17 @@ object AppModule {
     fun provideUsuarioDao(db: VallaGestDb) = db.usuarioDao()
 
     @Provides
+    fun provideCategoriaDao(db: VallaGestDb) = db.categoriaDao()
+
+    @Provides
     @Singleton
     fun provideVallaRepository(repository: VallaRepositoryImpl): VallaRepository = repository
 
     @Provides
     @Singleton
     fun provideAuthRepository(repository: AuthRepositoryImpl): AuthRepository = repository
+
+    @Provides
+    @Singleton
+    fun provideCategoriaRepository(repository: CategoriaRepositoryImpl): CategoriaRepository = repository
 }
