@@ -19,7 +19,7 @@ class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(HomeState(isLoading = true))
+    private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
     val usuarioLogueado: StateFlow<Usuario?> = authRepository.getSession()
@@ -35,9 +35,9 @@ class HomeViewModel @Inject constructor(
 
     private fun observeVallas() {
         viewModelScope.launch {
-            getVallasUseCase().collectLatest { result ->
+            getVallasUseCase().collect { result ->
                 when (result) {
-                    is Resource.Loading -> _state.update { it.copy(isLoading = true) }
+                    is Resource.Loading -> _state.update { it.copy(isLoading = it.vallas.isEmpty()) }
                     is Resource.Succes -> _state.update { it.copy(isLoading = false, vallas = result.data ?: emptyList()) }
                     is Resource.Error -> _state.update { it.copy(isLoading = false) }
                 }
