@@ -18,6 +18,7 @@ import edu.ucne.vallagest.data.repository.CategoriaRepositoryImpl
 import edu.ucne.vallagest.data.repository.VallaRepositoryImpl
 import edu.ucne.vallagest.domain.categorias.repository.CategoriaRepository
 import edu.ucne.vallagest.domain.usuarios.repository.AuthRepository
+import edu.ucne.vallagest.domain.vallas.repository.UploadRepository
 import edu.ucne.vallagest.domain.vallas.repository.VallaRepository
 import javax.inject.Singleton
 import retrofit2.Retrofit
@@ -80,6 +81,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideVallaRepository(repository: VallaRepositoryImpl): VallaRepository = repository
+
+    @Provides
+    @Singleton
+    fun provideUploadRepository(repository: VallaRepositoryImpl): UploadRepository = repository
 
     @Provides
     @Singleton
