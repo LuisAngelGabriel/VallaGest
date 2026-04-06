@@ -20,4 +20,7 @@ sealed class Screen {
 
     @Serializable
     data class CategoriaEdit(val categoriaId: Int = 0) : Screen()
+
+    @Serializable
+    data class VallaEdit(val vallaId: Int = 0) : Screen()
 }
