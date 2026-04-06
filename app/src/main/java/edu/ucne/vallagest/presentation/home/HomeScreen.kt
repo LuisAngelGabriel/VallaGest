@@ -1,7 +1,7 @@
 package edu.ucne.vallagest.presentation.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
@@ -26,10 +26,8 @@ import coil.compose.AsyncImage
 import edu.ucne.vallagest.R
 import edu.ucne.vallagest.domain.vallas.model.Valla
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onDrawer: () -> Unit,
     goToValla: (Int) -> Unit,
     createValla: () -> Unit,
     goToPerfil: () -> Unit,
@@ -44,9 +42,7 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 NavigationBarItem(
                     selected = true,
                     onClick = { },
@@ -110,27 +106,10 @@ fun HomeScreen(
                         value = searchText,
                         onValueChange = { searchText = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(
-                                "Buscar por ciudad o avenida...",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
+                        placeholder = { Text("Buscar ciudad o avenida...") },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.primary) },
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary
-                        )
+                        singleLine = true
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -138,23 +117,19 @@ fun HomeScreen(
 
             if (state.isLoading) {
                 item(span = { GridItemSpan(2) }) {
-                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            } else if (state.vallas.isEmpty()) {
-                item(span = { GridItemSpan(2) }) {
-                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                        Text("No hay vallas publicadas", color = Color.Gray)
+                    Box(Modifier.fillMaxWidth().height(200.dp), Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
             } else {
-                items(state.vallas) { valla ->
+                items(state.vallas.filter { it.nombre.contains(searchText, true) }) { valla ->
                     VallaGridItem(
                         valla = valla,
                         isAdmin = isAdmin,
                         onEdit = { goToValla(valla.vallaId) },
-                        onDelete = { viewModel.onDelete(valla.vallaId) }
+                        onDelete = { viewModel.onDelete(valla.vallaId) },
+                        onClick = { goToValla(valla.vallaId) },
+                        onAddToCart = goToCarrito
                     )
                 }
             }
@@ -163,115 +138,110 @@ fun HomeScreen(
 }
 
 @Composable
-fun VallaGridItem(valla: Valla, isAdmin: Boolean, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun VallaGridItem(
+    valla: Valla,
+    isAdmin: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onClick: () -> Unit,
+    onAddToCart: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
-            Box(modifier = Modifier.height(120.dp).fillMaxWidth()) {
-                if (!valla.imagenUrl.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = valla.imagenUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.valla_placeholder),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+            Box(Modifier.height(110.dp).fillMaxWidth()) {
+                AsyncImage(
+                    model = valla.imagenUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(R.drawable.valla_placeholder),
+                    placeholder = painterResource(R.drawable.valla_placeholder)
+                )
 
                 Surface(
-                    modifier = Modifier.padding(8.dp).align(Alignment.TopStart),
-                    color = (if (valla.estaOcupada) MaterialTheme.colorScheme.errorContainer
-                    else MaterialTheme.colorScheme.primaryContainer).copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(4.dp)
+                    onClick = onAddToCart,
+                    shape = CircleShape,
+                    color = Color.Black.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(6.dp)
+                        .size(30.dp)
                 ) {
-                    Text(
-                        text = if (valla.estaOcupada) "OCUPADO" else "DISPONIBLE",
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        color = if (valla.estaOcupada) MaterialTheme.colorScheme.onErrorContainer
-                        else MaterialTheme.colorScheme.onPrimaryContainer
+                    Icon(
+                        Icons.Default.AddShoppingCart,
+                        null,
+                        Modifier.padding(6.dp),
+                        tint = Color.White
                     )
                 }
 
                 if (isAdmin) {
                     Row(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(6.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        IconButton(
+                        Surface(
                             onClick = onEdit,
-                            modifier = Modifier.size(28.dp).background(MaterialTheme.colorScheme.primary, CircleShape)
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                            modifier = Modifier.size(26.dp)
                         ) {
-                            Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Default.Edit, null, Modifier.padding(5.dp), tint = Color.White)
                         }
-                        IconButton(
+                        Surface(
                             onClick = onDelete,
-                            modifier = Modifier.size(28.dp).background(MaterialTheme.colorScheme.error, CircleShape)
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.9f),
+                            modifier = Modifier.size(26.dp)
                         ) {
-                            Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.onError, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Default.Delete, null, Modifier.padding(5.dp), tint = Color.White)
                         }
                     }
                 }
             }
 
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(10.dp)) {
                 Text(
-                    text = valla.nombre,
-                    style = MaterialTheme.typography.titleMedium,
+                    valla.nombre,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
-                Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
-                    Text(
-                        text = valla.nombreCategoria?.uppercase() ?: "ESTÁTICA",
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
                 Text(
-                    text = "RD$ ${valla.precioMensual}/mes",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
+                    valla.descripcion ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "RD$ ${valla.precioMensual}",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(12.dp)
+                        Icons.Default.LocationOn,
+                        null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(10.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = valla.ubicacion,
+                        valla.ubicacion,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        color = Color.Gray,
+                        maxLines = 1
                     )
                 }
             }
