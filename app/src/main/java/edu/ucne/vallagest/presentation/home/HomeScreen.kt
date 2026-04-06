@@ -165,6 +165,20 @@ fun VallaGridItem(
                 )
 
                 Surface(
+                    color = if (valla.estaOcupada) Color(0xFFE57373) else Color(0xFF81C784),
+                    shape = RoundedCornerShape(bottomEnd = 8.dp),
+                    modifier = Modifier.align(Alignment.BottomStart)
+                ) {
+                    Text(
+                        text = if (valla.estaOcupada) "Ocupada" else "Disponible",
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Surface(
                     onClick = onAddToCart,
                     shape = CircleShape,
                     color = Color.Black.copy(alpha = 0.6f),
@@ -225,7 +239,7 @@ fun VallaGridItem(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "RD$ ${valla.precioMensual}",
+                    "RD$ ${valla.precioMensual}/mes",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp
