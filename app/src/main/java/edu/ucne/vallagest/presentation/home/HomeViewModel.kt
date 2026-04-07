@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.vallagest.data.remote.Resource
+import edu.ucne.vallagest.data.remote.dto.CarritoPostDto
+import edu.ucne.vallagest.domain.carrito.usecases.AddCarritoUseCase
+import edu.ucne.vallagest.domain.carrito.usecases.GetCarritoUseCase
 import edu.ucne.vallagest.domain.usuarios.model.Usuario
 import edu.ucne.vallagest.domain.usuarios.repository.AuthRepository
 import edu.ucne.vallagest.domain.vallas.usecases.DeleteVallaUseCase
@@ -16,6 +19,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getVallasUseCase: GetVallasUseCase,
     private val deleteVallaUseCase: DeleteVallaUseCase,
+    private val addCarritoUseCase: AddCarritoUseCase,
+    private val getCarritoUseCase: GetCarritoUseCase,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -31,6 +36,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         observeVallas()
+        observeCarritoCount()
     }
 
     private fun observeVallas() {
@@ -45,11 +51,40 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun observeCarritoCount() {
+        viewModelScope.launch {
+            usuarioLogueado.collectLatest { usuario ->
+                usuario?.let {
+                    getCarritoUseCase(it.usuarioId).collectLatest { result ->
+                        if (result is Resource.Succes) {
+                            _state.update { it.copy(carritoCount = result.data?.size ?: 0) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun onDelete(id: Int) {
         viewModelScope.launch {
             deleteVallaUseCase(id).collectLatest { result ->
                 if (result is Resource.Succes) {
                     observeVallas()
+                }
+            }
+        }
+    }
+
+    fun onAgregarAlCarrito(vallaId: Int) {
+        viewModelScope.launch {
+            val usuario = usuarioLogueado.value ?: return@launch
+            val item = CarritoPostDto(
+                usuarioId = usuario.usuarioId,
+                vallaId = vallaId
+            )
+            addCarritoUseCase(item).collectLatest { result ->
+                if (result is Resource.Succes) {
+                    observeCarritoCount()
                 }
             }
         }

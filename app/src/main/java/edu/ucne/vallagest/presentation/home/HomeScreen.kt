@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 import edu.ucne.vallagest.R
 import edu.ucne.vallagest.domain.vallas.model.Valla
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     goToValla: (Int) -> Unit,
@@ -58,7 +59,19 @@ fun HomeScreen(
                 NavigationBarItem(
                     selected = false,
                     onClick = goToCarrito,
-                    icon = { Icon(Icons.Default.ShoppingCart, null) },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                if (state.carritoCount > 0) {
+                                    Badge {
+                                        Text(state.carritoCount.toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Default.ShoppingCart, null)
+                        }
+                    },
                     label = { Text("Carrito") }
                 )
                 NavigationBarItem(
@@ -129,7 +142,9 @@ fun HomeScreen(
                         onEdit = { goToValla(valla.vallaId) },
                         onDelete = { viewModel.onDelete(valla.vallaId) },
                         onClick = { goToValla(valla.vallaId) },
-                        onAddToCart = goToCarrito
+                        onAddToCart = {
+                            viewModel.onAgregarAlCarrito(valla.vallaId)
+                        }
                     )
                 }
             }
