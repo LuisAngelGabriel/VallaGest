@@ -16,6 +16,7 @@ import edu.ucne.vallagest.presentation.login.LoginScreen
 import edu.ucne.vallagest.presentation.perfil.PerfilScreen
 import edu.ucne.vallagest.presentation.register.RegisterScreen
 import edu.ucne.vallagest.presentation.vallas.edit.EditVallaScreen
+import edu.ucne.vallagest.presentation.carrito.CarritoScreen
 
 @Composable
 fun VallaGestNavHost(
@@ -66,7 +67,7 @@ fun VallaGestNavHost(
                     navController.navigate(Screen.CategoriaList)
                 },
                 goToCarrito = {
-                    navController.navigate(Screen.Home)
+                    navController.navigate(Screen.Carrito)
                 }
             )
         }
@@ -85,7 +86,7 @@ fun VallaGestNavHost(
                     navController.navigate(Screen.CategoriaList)
                 },
                 onNavigateToCarrito = {
-                    navController.navigate(Screen.Home)
+                    navController.navigate(Screen.Carrito)
                 }
             )
         }
@@ -95,7 +96,7 @@ fun VallaGestNavHost(
                 onAdd = { navController.navigate(Screen.CategoriaEdit(0)) },
                 onEdit = { id -> navController.navigate(Screen.CategoriaEdit(id)) },
                 goToExplorar = { navController.navigate(Screen.Home) },
-                goToCarrito = { navController.navigate(Screen.Home) },
+                goToCarrito = { navController.navigate(Screen.Carrito) },
                 goToPerfil = { navController.navigate(Screen.Perfil) }
             )
         }
@@ -118,6 +119,12 @@ fun VallaGestNavHost(
                 vallaId = args.vallaId,
                 isAdmin = isAdmin,
                 goBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.Carrito> {
+            CarritoScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }
