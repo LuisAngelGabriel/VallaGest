@@ -1,7 +1,6 @@
 package edu.ucne.vallagest.data.api
 
-import edu.ucne.vallagest.data.remote.dto.VallaDto
-import edu.ucne.vallagest.data.remote.dto.UploadResponseDto
+import edu.ucne.vallagest.data.remote.dto.*
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -37,4 +36,13 @@ interface VallaApi {
     suspend fun uploadImage(
         @Part file: MultipartBody.Part
     ): UploadResponseDto
+
+    @GET("api/Carrito/{usuarioId}")
+    suspend fun getCarrito(@Path("usuarioId") usuarioId: Int): List<CarritoItemDto>
+
+    @POST("api/Carrito")
+    suspend fun agregarAlCarrito(@Body item: CarritoPostDto): Response<Unit>
+
+    @DELETE("api/Carrito/{id}")
+    suspend fun eliminarDelCarrito(@Path("id") id: Int): Response<Unit>
 }
