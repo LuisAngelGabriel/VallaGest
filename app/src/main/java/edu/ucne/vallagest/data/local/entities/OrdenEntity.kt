@@ -13,7 +13,7 @@ data class OrdenEntity(
     val comprobanteUrl: String?
 )
 
-@Entity(tableName = "OrdenesDetalles")
+@Entity(tableName = "OrdenDetalles")
 data class OrdenDetalleEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

@@ -7,10 +7,10 @@ import edu.ucne.vallagest.data.remote.Resource
 import edu.ucne.vallagest.domain.ordenes.usecases.GetHistorialUseCase
 import edu.ucne.vallagest.domain.ordenes.usecases.RealizarPagoUseCase
 import edu.ucne.vallagest.domain.usuarios.repository.AuthRepository
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,6 +24,10 @@ class AlquileresViewModel @Inject constructor(
     private val _state = MutableStateFlow(AlquileresUiState())
     val state = _state.asStateFlow()
 
+    init {
+        cargarDatos()
+    }
+
     fun onEvent(event: AlquileresUiEvent) {
         when (event) {
             is AlquileresUiEvent.CargarAlquileres -> cargarDatos()
@@ -33,12 +37,18 @@ class AlquileresViewModel @Inject constructor(
 
     private fun cargarDatos() {
         viewModelScope.launch {
-            val usuario = authRepository.getSession().firstOrNull() ?: return@launch
+            _state.update { it.copy(isLoading = true) }
+            val usuario = authRepository.getSession().first()
+            if (usuario == null) {
+                _state.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
             getHistorialUseCase(usuario.usuarioId).collect { result ->
                 _state.update {
                     when(result) {
                         is Resource.Loading -> it.copy(isLoading = true)
-                        is Resource.Succes -> it.copy(isLoading = false, alquileres = result.data ?: emptyList())
+                        is Resource.Succes -> it.copy(isLoading = false, alquileres = result.data ?: emptyList(), error = null)
                         is Resource.Error -> it.copy(isLoading = false, error = result.message)
                     }
                 }

@@ -52,6 +52,7 @@ class OrdenViewModel @Inject constructor(
             val file = uriToFile(uri, context) ?: return@launch
             val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
             val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+
             uploadRepository.uploadImage(body).collect { result ->
                 _state.update {
                     when (result) {
@@ -71,30 +72,42 @@ class OrdenViewModel @Inject constructor(
                 FileOutputStream(file).use { output -> input.copyTo(output) }
             }
             file
-        } catch (e: Exception) { null }
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun realizarCobro() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val usuario = authRepository.getSession().firstOrNull()
             if (usuario == null || usuario.usuarioId == 0) return@launch
-            val dto = CheckoutDto(metodo = _state.value.metodoPago, comprobanteUrl = _state.value.comprobanteUrl)
-            realizarPagoUseCase(usuario.usuarioId, _state.value.meses, dto).collect { result ->
-                when (result) {
-                    is Resource.Loading -> _state.update { it.copy(isLoading = true) }
-                    is Resource.Succes -> {
-                        _state.update { it.copy(isLoading = false, pagoExitoso = true) }
-                        cargarHistorial()
+
+            val currentState = _state.value
+            val dto = CheckoutDto(
+                metodo = currentState.metodoPago,
+                comprobanteUrl = currentState.comprobanteUrl ?: ""
+            )
+
+            realizarPagoUseCase(usuario.usuarioId, currentState.meses, dto).collect { result ->
+                _state.update {
+                    when (result) {
+                        is Resource.Loading -> it.copy(isLoading = true)
+                        is Resource.Succes -> it.copy(isLoading = false, pagoExitoso = true)
+                        is Resource.Error -> it.copy(isLoading = false, error = result.message)
                     }
-                    is Resource.Error -> _state.update { it.copy(isLoading = false, error = result.message) }
+                }
+                if (result is Resource.Succes) {
+                    cargarHistorial()
                 }
             }
         }
     }
 
     fun cargarHistorial() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val usuario = authRepository.getSession().firstOrNull() ?: return@launch
+        viewModelScope.launch {
+            val usuario = authRepository.getSession().firstOrNull()
+            if (usuario == null || usuario.usuarioId == 0) return@launch
+
             getHistorialUseCase(usuario.usuarioId).collect { result ->
                 _state.update {
                     when (result) {
@@ -108,7 +121,7 @@ class OrdenViewModel @Inject constructor(
     }
 
     fun cancelarAlquiler(ordenId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             realizarPagoUseCase.cancelar(ordenId).collect { result ->
                 if (result is Resource.Succes) {
                     cargarHistorial()

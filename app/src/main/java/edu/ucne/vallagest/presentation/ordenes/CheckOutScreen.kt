@@ -19,7 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun CheckoutScreen(
     totalVallas: Double,
     onBack: () -> Unit,
-    onConfirmarMetodo: (Double, Int) -> Unit,
+    onConfirmarMetodo: (Double, Int, Int) -> Unit,
     viewModel: OrdenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -55,8 +55,11 @@ fun CheckoutScreen(
                 }
             }
             Spacer(Modifier.weight(1f))
-            Button(onClick = { onConfirmarMetodo(totalFinal, state.metodoPago) }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Text("CONTINUAR A RD$ $totalFinal")
+            Button(
+                onClick = { onConfirmarMetodo(totalFinal, state.metodoPago, state.meses) },
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+            ) {
+                Text("CONTINUAR A RD$ ${String.format("%,.2f", totalFinal)}")
             }
         }
     }

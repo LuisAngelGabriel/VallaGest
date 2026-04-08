@@ -27,12 +27,8 @@ sealed class Screen {
     @Serializable
     data class Checkout(val total: Double) : Screen()
 
-    @Serializable
-    data class PagoTarjeta(val total: Double) : Screen()
-
-    @Serializable
-    data class PagoTransferencia(val total: Double) : Screen()
-
+    @Serializable data class PagoTarjeta(val total: Double, val meses: Int) : Screen()
+    @Serializable data class PagoTransferencia(val total: Double, val meses: Int) : Screen()
     @Serializable
     data object Perfil : Screen()
 

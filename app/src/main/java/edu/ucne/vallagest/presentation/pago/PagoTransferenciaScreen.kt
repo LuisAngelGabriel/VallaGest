@@ -30,6 +30,7 @@ import edu.ucne.vallagest.presentation.ordenes.OrdenViewModel
 @Composable
 fun PagoTransferenciaScreen(
     total: Double,
+    meses: Int,
     onBack: () -> Unit,
     onPagoExitoso: () -> Unit,
     viewModel: OrdenViewModel = hiltViewModel()
@@ -40,7 +41,14 @@ fun PagoTransferenciaScreen(
         uri?.let { viewModel.uploadComprobante(it, context) }
     }
 
-    LaunchedEffect(state.pagoExitoso) { if (state.pagoExitoso) onPagoExitoso() }
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(OrdenUiEvent.OnMesesChange(meses))
+        viewModel.onEvent(OrdenUiEvent.OnMetodoChange(2))
+    }
+
+    LaunchedEffect(state.pagoExitoso) {
+        if (state.pagoExitoso) onPagoExitoso()
+    }
 
     Scaffold(
         topBar = {
@@ -50,15 +58,9 @@ fun PagoTransferenciaScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.primary
-                )
+                }
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        }
     ) { padding ->
         Column(
             Modifier
@@ -95,10 +97,7 @@ fun PagoTransferenciaScreen(
             Text(
                 "Cuentas Bancarias",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 fontWeight = FontWeight.Bold
             )
 
@@ -107,7 +106,9 @@ fun PagoTransferenciaScreen(
                 CuentaBancaria("Banco Popular", "754-214587-2", Color(0xFF005691))
             )
 
-            cuentas.forEach { CardCuenta(it) }
+            cuentas.forEach { cuenta ->
+                CardCuenta(cuenta)
+            }
 
             Spacer(Modifier.height(24.dp))
 
@@ -129,40 +130,15 @@ fun PagoTransferenciaScreen(
             ) {
                 if (state.comprobanteUrl != null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            null,
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(56.dp)
-                        )
+                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(56.dp))
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Comprobante Cargado",
-                            color = Color(0xFF4CAF50),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        Text("Comprobante Cargado", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
                     }
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.CloudUpload,
-                            null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(56.dp)
-                        )
+                        Icon(Icons.Default.CloudUpload, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(56.dp))
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Subir Comprobante",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            "Toca para seleccionar imagen",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Text("Subir Comprobante", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -171,22 +147,12 @@ fun PagoTransferenciaScreen(
 
             Button(
                 onClick = { viewModel.onEvent(OrdenUiEvent.Pagar(total)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
                 enabled = state.comprobanteUrl != null && !state.isLoading
             ) {
                 if (state.isLoading) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
-                    )
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
                     Text("Finalizar Alquiler", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }

@@ -23,7 +23,7 @@ fun OrdenDto.toDomain(): Orden {
 fun OrdenDetalleDto.toDomain(): OrdenDetalle {
     return OrdenDetalle(
         vallaId = this.vallaId,
-        nombreValla = this.nombreValla, // Usando nombreValla del DTO
+        nombreValla = this.nombreValla,
         precioAplicado = this.precioAplicado,
         meses = this.meses
     )

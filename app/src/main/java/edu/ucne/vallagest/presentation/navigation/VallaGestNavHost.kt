@@ -94,23 +94,33 @@ fun VallaGestNavHost(navController: NavHostController) {
             CheckoutScreen(
                 totalVallas = args.total,
                 onBack = { navController.popBackStack() },
-                onConfirmarMetodo = { totalFinal, metodo ->
-                    if (metodo == 0) navController.navigate(Screen.PagoTarjeta(totalFinal))
-                    else navController.navigate(Screen.PagoTransferencia(totalFinal))
+                onConfirmarMetodo = { totalFinal, metodo, meses ->
+                    if (metodo == 0) navController.navigate(Screen.PagoTarjeta(totalFinal, meses))
+                    else navController.navigate(Screen.PagoTransferencia(totalFinal, meses))
                 }
             )
         }
         composable<Screen.PagoTarjeta> { backStackEntry ->
             val args = backStackEntry.toRoute<Screen.PagoTarjeta>()
-            PagoTarjetaScreen(total = args.total, onBack = { navController.popBackStack() }, onPagoExitoso = {
-                navController.navigate(Screen.Home) { popUpTo(Screen.Home) { inclusive = true } }
-            })
+            PagoTarjetaScreen(
+                total = args.total,
+                meses = args.meses,
+                onBack = { navController.popBackStack() },
+                onPagoExitoso = {
+                    navController.navigate(Screen.Home) { popUpTo(Screen.Home) { inclusive = true } }
+                }
+            )
         }
         composable<Screen.PagoTransferencia> { backStackEntry ->
             val args = backStackEntry.toRoute<Screen.PagoTransferencia>()
-            PagoTransferenciaScreen(total = args.total, onBack = { navController.popBackStack() }, onPagoExitoso = {
-                navController.navigate(Screen.Home) { popUpTo(Screen.Home) { inclusive = true } }
-            })
+            PagoTransferenciaScreen(
+                total = args.total,
+                meses = args.meses,
+                onBack = { navController.popBackStack() },
+                onPagoExitoso = {
+                    navController.navigate(Screen.Home) { popUpTo(Screen.Home) { inclusive = true } }
+                }
+            )
         }
     }
 }

@@ -11,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -26,6 +25,7 @@ import edu.ucne.vallagest.presentation.ordenes.OrdenViewModel
 @Composable
 fun PagoTarjetaScreen(
     total: Double,
+    meses: Int,
     onBack: () -> Unit,
     onPagoExitoso: () -> Unit,
     viewModel: OrdenViewModel = hiltViewModel()
@@ -37,13 +37,19 @@ fun PagoTarjetaScreen(
     var fechaExpiracion by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
 
-    val esNombreValido = nombreHabilitado.isNotBlank()
-    val esNumeroValido = numeroTarjeta.length == 16
-    val esFechaValida = fechaExpiracion.length == 4
-    val esCvvValido = cvv.length == 3
-    val formularioValido = esNombreValido && esNumeroValido && esFechaValida && esCvvValido
+    val formularioValido = nombreHabilitado.isNotBlank() &&
+            numeroTarjeta.length == 16 &&
+            fechaExpiracion.length == 4 &&
+            cvv.length == 3
 
-    LaunchedEffect(state.pagoExitoso) { if (state.pagoExitoso) onPagoExitoso() }
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(OrdenUiEvent.OnMesesChange(meses))
+        viewModel.onEvent(OrdenUiEvent.OnMetodoChange(0))
+    }
+
+    LaunchedEffect(state.pagoExitoso) {
+        if (state.pagoExitoso) onPagoExitoso()
+    }
 
     Scaffold(
         topBar = {
@@ -53,24 +59,11 @@ fun PagoTarjetaScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.primary
-                )
+                }
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        }
     ) { padding ->
         Column(Modifier.padding(padding).padding(24.dp).fillMaxSize()) {
-            Text(
-                "Información de la Tarjeta",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
             OutlinedTextField(
                 value = nombreHabilitado,
                 onValueChange = { nombreHabilitado = it },
@@ -78,13 +71,7 @@ fun PagoTarjetaScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface
-                )
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
             )
 
             OutlinedTextField(
@@ -94,13 +81,7 @@ fun PagoTarjetaScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 trailingIcon = { Icon(Icons.Default.CreditCard, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface
-                )
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             Row(
@@ -113,13 +94,7 @@ fun PagoTarjetaScreen(
                     label = { Text("MM/AA") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = cvv,
@@ -128,40 +103,36 @@ fun PagoTarjetaScreen(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = { Icon(Icons.Default.Lock, null) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
             Spacer(Modifier.height(32.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider()
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Total a pagar", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text("RD$ ${String.format("%,.2f", total)}", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text("Total a pagar", style = MaterialTheme.typography.titleMedium)
+                Text("RD$ ${String.format("%,.2f", total)}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold)
             }
 
             Button(
                 onClick = { viewModel.onEvent(OrdenUiEvent.Pagar(total)) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
                 enabled = formularioValido && !state.isLoading
             ) {
                 if (state.isLoading) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
                 } else {
                     Text("Confirmar Pago", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }

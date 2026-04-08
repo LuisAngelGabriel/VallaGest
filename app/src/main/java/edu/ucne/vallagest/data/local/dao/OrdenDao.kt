@@ -20,9 +20,12 @@ interface OrdenDao {
     @Query("SELECT * FROM Ordenes WHERE usuarioId = :usuarioId ORDER BY fechaOrden DESC")
     fun getOrdenes(usuarioId: Int): Flow<List<OrdenEntity>>
 
-    @Query("SELECT * FROM OrdenesDetalles WHERE ordenId = :ordenId")
+    @Query("SELECT * FROM OrdenDetalles WHERE ordenId = :ordenId")
     suspend fun getDetallesByOrden(ordenId: Int): List<OrdenDetalleEntity>
 
     @Query("DELETE FROM Ordenes WHERE usuarioId = :usuarioId")
     suspend fun clearOrdenes(usuarioId: Int)
+
+    @Query("DELETE FROM OrdenDetalles WHERE ordenId IN (SELECT ordenId FROM Ordenes WHERE usuarioId = :usuarioId)")
+    suspend fun clearDetallesByUsuario(usuarioId: Int)
 }

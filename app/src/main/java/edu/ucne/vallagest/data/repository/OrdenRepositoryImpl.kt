@@ -10,6 +10,7 @@ import edu.ucne.vallagest.data.remote.remotedatasource.OrdenRemoteDataSource
 import edu.ucne.vallagest.domain.ordenes.model.Orden
 import edu.ucne.vallagest.domain.ordenes.repository.OrdenRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
@@ -22,7 +23,6 @@ class OrdenRepositoryImpl @Inject constructor(
     override fun realizarPago(usuarioId: Int, meses: Int, dto: CheckoutDto): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         val result = remoteDataSource.realizarCheckout(usuarioId, meses, dto)
-
         if (result.isSuccess) {
             carritoDao.clearCarrito()
             emit(Resource.Succes(Unit))
@@ -33,18 +33,27 @@ class OrdenRepositoryImpl @Inject constructor(
 
     override fun getHistorial(usuarioId: Int): Flow<Resource<List<Orden>>> = flow {
         emit(Resource.Loading())
-        val result = remoteDataSource.getHistorial(usuarioId)
-
-        if (result.isSuccess) {
-            val dtos = result.getOrNull() ?: emptyList()
-            ordenDao.clearOrdenes(usuarioId)
-            dtos.forEach { dto ->
-                ordenDao.insertOrden(dto.toEntity(usuarioId))
+        try {
+            val result = remoteDataSource.getHistorial(usuarioId)
+            if (result.isSuccess) {
+                val dtos = result.getOrNull() ?: emptyList()
+                ordenDao.clearDetallesByUsuario(usuarioId)
+                ordenDao.clearOrdenes(usuarioId)
+                dtos.forEach { dto ->
+                    ordenDao.insertOrden(dto.toEntity(usuarioId))
+                    ordenDao.insertDetalles(dto.detalles.map { it.toEntity(dto.ordenId) })
+                }
             }
-            emit(Resource.Succes(dtos.map { it.toDomain() }))
-        } else {
-            emit(Resource.Error(result.exceptionOrNull()?.message ?: "Error al obtener historial"))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Error de conexión"))
         }
+
+        val entidades = ordenDao.getOrdenes(usuarioId).first()
+        val ordenesCompletas = entidades.map { ordenEntity ->
+            val detallesEntity = ordenDao.getDetallesByOrden(ordenEntity.ordenId)
+            ordenEntity.toDomain(detallesEntity)
+        }
+        emit(Resource.Succes(ordenesCompletas))
     }
 
     override fun cancelarOrden(ordenId: Int): Flow<Resource<Unit>> = flow {

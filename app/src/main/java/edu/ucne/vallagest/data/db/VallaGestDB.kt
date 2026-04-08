@@ -23,7 +23,7 @@ import edu.ucne.vallagest.data.local.entities.OrdenDetalleEntity
         OrdenEntity::class,
         OrdenDetalleEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class VallaGestDb : RoomDatabase() {
