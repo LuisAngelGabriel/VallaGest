@@ -3,6 +3,7 @@ package edu.ucne.vallagest.data.repository
 import edu.ucne.vallagest.data.local.dao.UsuarioDao
 import edu.ucne.vallagest.data.mappers.toEntity
 import edu.ucne.vallagest.data.remote.Resource
+import edu.ucne.vallagest.data.remote.dto.AuthResponse
 import edu.ucne.vallagest.data.remote.dto.LoginRequest
 import edu.ucne.vallagest.data.remote.dto.RegisterRequest
 import edu.ucne.vallagest.data.remote.remotedatasource.AuthRemoteDataSource
@@ -47,6 +48,18 @@ class AuthRepositoryImpl @Inject constructor(
     override fun getSession(): Flow<Usuario?> {
         return usuarioDao.getLoggedUsuario().map { entity ->
             entity?.let { Usuario(it.usuarioId, it.nombre, it.email, it.rol) }
+        }
+    }
+
+    override suspend fun actualizarUsuario(id: Int, request: RegisterRequest): Flow<Resource<AuthResponse>> = flow {
+        emit(Resource.Loading())
+        val result = remoteDataSource.actualizarUsuario(id, request)
+
+        result.onSuccess { dto ->
+            usuarioDao.saveUsuario(dto.toEntity())
+            emit(Resource.Succes(dto))
+        }.onFailure {
+            emit(Resource.Error(it.message ?: "Error al actualizar perfil"))
         }
     }
 }
