@@ -20,7 +20,7 @@ import edu.ucne.vallagest.presentation.carrito.CarritoScreen
 import edu.ucne.vallagest.presentation.ordenes.CheckoutScreen
 import edu.ucne.vallagest.presentation.pago.PagoTarjetaScreen
 import edu.ucne.vallagest.presentation.pago.PagoTransferenciaScreen
-import edu.ucne.vallagest.presentation.ordenes.AlquileresScreen
+import edu.ucne.vallagest.presentation.misalquileres.AlquileresScreen
 
 @Composable
 fun VallaGestNavHost(navController: NavHostController) {
