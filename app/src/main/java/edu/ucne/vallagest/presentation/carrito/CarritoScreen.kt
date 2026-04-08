@@ -24,6 +24,7 @@ import coil.compose.AsyncImage
 @Composable
 fun CarritoScreen(
     onBack: () -> Unit,
+    onIrAPagar: (Double) -> Unit,
     viewModel: CarritoViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -72,13 +73,24 @@ fun CarritoScreen(
                         }
                     }
                 }
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    Row(Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Total Mensual:", fontWeight = FontWeight.Bold)
-                        Text("RD$ ${state.total}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+
+                Column(Modifier.padding(16.dp)) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Row(Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Mensual:", fontWeight = FontWeight.Bold)
+                            Text("RD$ ${state.total}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
+                    Button(
+                        onClick = { onIrAPagar(state.total) },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("CONTINUAR AL PAGO", fontWeight = FontWeight.Bold)
                     }
                 }
             }
