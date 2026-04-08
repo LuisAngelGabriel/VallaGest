@@ -41,6 +41,11 @@ fun HomeScreen(
     val isAdmin = usuario?.rol == "Admin"
     var searchText by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.observeVallas()
+        viewModel.observeCarritoCount()
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
@@ -194,18 +199,18 @@ fun VallaGridItem(
                 }
 
                 Surface(
-                    onClick = onAddToCart,
+                    onClick = { if (!valla.estaOcupada) onAddToCart() },
                     shape = CircleShape,
-                    color = Color.Black.copy(alpha = 0.6f),
+                    color = if (valla.estaOcupada) Color.Gray.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.6f),
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(6.dp)
                         .size(30.dp)
                 ) {
                     Icon(
-                        Icons.Default.AddShoppingCart,
-                        null,
-                        Modifier.padding(6.dp),
+                        imageVector = if (valla.estaOcupada) Icons.Default.Block else Icons.Default.AddShoppingCart,
+                        contentDescription = null,
+                        modifier = Modifier.padding(6.dp),
                         tint = Color.White
                     )
                 }

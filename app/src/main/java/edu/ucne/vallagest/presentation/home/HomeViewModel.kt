@@ -39,7 +39,7 @@ class HomeViewModel @Inject constructor(
         observeCarritoCount()
     }
 
-    private fun observeVallas() {
+    fun observeVallas() {
         viewModelScope.launch {
             getVallasUseCase().collect { result ->
                 when (result) {
@@ -51,14 +51,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun observeCarritoCount() {
+    fun observeCarritoCount() {
         viewModelScope.launch {
-            usuarioLogueado.collectLatest { usuario ->
-                usuario?.let {
-                    getCarritoUseCase(it.usuarioId).collectLatest { result ->
-                        if (result is Resource.Succes) {
-                            _state.update { it.copy(carritoCount = result.data?.size ?: 0) }
-                        }
+            val usuario = usuarioLogueado.value
+            usuario?.let {
+                getCarritoUseCase(it.usuarioId).collectLatest { result ->
+                    if (result is Resource.Succes) {
+                        _state.update { it.copy(carritoCount = result.data?.size ?: 0) }
                     }
                 }
             }
