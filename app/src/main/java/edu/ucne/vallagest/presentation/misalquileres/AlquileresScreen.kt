@@ -8,11 +8,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +30,7 @@ fun AlquileresScreen(
     viewModel: OrdenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var alquilerAEliminar by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.cargarHistorial()
@@ -60,7 +59,7 @@ fun AlquileresScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("No tienes vallas activs", style = MaterialTheme.typography.titleMedium, color = Color.Gray)
+                Text("No tienes vallas activas", style = MaterialTheme.typography.titleMedium, color = Color.Gray)
             }
         } else {
             LazyColumn(
@@ -74,11 +73,34 @@ fun AlquileresScreen(
                 items(state.ordenes) { orden ->
                     AlquilerTicketItem(
                         orden = orden,
-                        onCancelar = { viewModel.cancelarAlquiler(orden.ordenId) }
+                        onCancelar = { alquilerAEliminar = orden.ordenId }
                     )
                 }
             }
         }
+    }
+
+    alquilerAEliminar?.let { id ->
+        AlertDialog(
+            onDismissRequest = { alquilerAEliminar = null },
+            title = { Text("Terminar Alquiler") },
+            text = { Text("¿Deseas terminar el alquiler de esta valla?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.cancelarAlquiler(id)
+                        alquilerAEliminar = null
+                    }
+                ) {
+                    Text("TERMINAR", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { alquilerAEliminar = null }) {
+                    Text("CANCELAR")
+                }
+            }
+        )
     }
 }
 
@@ -122,13 +144,13 @@ fun AlquilerTicketItem(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f))
-                        .size(32.dp)
+                        .size(36.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cancelar",
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
