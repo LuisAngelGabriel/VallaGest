@@ -2,7 +2,6 @@ package edu.ucne.vallagest.data.remotedatasource
 
 import edu.ucne.vallagest.data.api.CategoriaApi
 import edu.ucne.vallagest.data.remote.dto.CategoriaDto
-import retrofit2.HttpException
 import javax.inject.Inject
 
 class CategoriaRemoteDataSource @Inject constructor(
@@ -12,10 +11,8 @@ class CategoriaRemoteDataSource @Inject constructor(
         return try {
             val response = api.getCategorias()
             Result.success(response)
-        } catch (e: HttpException) {
-            Result.failure(Exception(e.response()?.errorBody()?.string() ?: "Error de servidor"))
         } catch (e: Exception) {
-            Result.failure(Exception(e.localizedMessage ?: "Error desconocido"))
+            Result.failure(e)
         }
     }
 

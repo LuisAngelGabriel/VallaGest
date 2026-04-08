@@ -7,13 +7,15 @@ import edu.ucne.vallagest.domain.categorias.model.Categoria
 fun CategoriaDto.toEntity() = CategoriaEntity(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion
+    descripcion = descripcion,
+    isSynced = true
 )
 
 fun CategoriaEntity.toDomain() = Categoria(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion
+    descripcion = descripcion,
+    isSynced = isSynced
 )
 
 fun Categoria.toDto() = CategoriaDto(
@@ -25,5 +27,6 @@ fun Categoria.toDto() = CategoriaDto(
 fun CategoriaDto.toDomain() = Categoria(
     categoriaId = categoriaId,
     nombre = nombre,
-    descripcion = descripcion
+    descripcion = descripcion,
+    isSynced = true
 )

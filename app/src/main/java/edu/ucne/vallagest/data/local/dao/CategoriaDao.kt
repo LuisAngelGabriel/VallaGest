@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoriaDao {
-
     @Query("SELECT * FROM Categorias ORDER BY categoriaId DESC")
     fun observerAll(): Flow<List<CategoriaEntity>>
 
@@ -19,11 +18,17 @@ interface CategoriaDao {
     @Upsert
     suspend fun upsert(categoria: CategoriaEntity): Long
 
+    @Upsert
+    suspend fun upsertAll(categorias: List<CategoriaEntity>)
+
     @Delete
     suspend fun delete(categoria: CategoriaEntity)
 
     @Query("DELETE FROM Categorias WHERE categoriaId = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("DELETE FROM Categorias")
+    suspend fun clearAll()
 
     @Query("SELECT * FROM Categorias WHERE nombre = :nombre")
     suspend fun getCategoriasByNombre(nombre: String): List<CategoriaEntity>

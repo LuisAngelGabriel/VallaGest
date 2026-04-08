@@ -13,7 +13,8 @@ fun VallaDto.toEntity() = VallaEntity(
     imagenUrl = imagenUrl,
     estaOcupada = estaOcupada,
     categoriaId = categoriaId,
-    nombreCategoria = nombreCategoria
+    nombreCategoria = nombreCategoria,
+    isSynced = true
 )
 
 fun VallaEntity.toDomain() = Valla(
@@ -25,7 +26,8 @@ fun VallaEntity.toDomain() = Valla(
     imagenUrl = imagenUrl,
     estaOcupada = estaOcupada,
     categoriaId = categoriaId,
-    nombreCategoria = nombreCategoria
+    nombreCategoria = nombreCategoria,
+    isSynced = isSynced
 )
 
 fun Valla.toDto() = VallaDto(
@@ -49,5 +51,6 @@ fun VallaDto.toDomain() = Valla(
     imagenUrl = imagenUrl,
     estaOcupada = estaOcupada,
     categoriaId = categoriaId,
-    nombreCategoria = nombreCategoria
+    nombreCategoria = nombreCategoria,
+    isSynced = true
 )

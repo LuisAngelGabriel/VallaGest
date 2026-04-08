@@ -22,11 +22,32 @@ class VallaRepositoryImpl @Inject constructor(
     override fun getVallas(): Flow<Resource<List<Valla>>> = flow {
         emit(Resource.Loading())
         val local = vallaDao.observerAll().first()
-        if (local.isNotEmpty()) emit(Resource.Succes(local.map { it.toDomain() }))
+        emit(Resource.Succes(local.map { it.toDomain() }))
+
+        val user = authRepository.getSession().firstOrNull()
+        val pendientes = vallaDao.observerAll().first().filter { !it.isSynced }
+
+        pendientes.forEach { entity ->
+            try {
+                if (entity.vallaId < 0) {
+                    remoteDataSource.saveValla(entity.toDomain().toDto().copy(vallaId = 0), user?.rol ?: "Admin").onSuccess { dto ->
+                        vallaDao.deleteById(entity.vallaId)
+                        vallaDao.upsert(dto.toEntity().copy(isSynced = true))
+                    }
+                } else {
+                    remoteDataSource.updateValla(entity.vallaId, entity.toDomain().toDto(), user?.rol ?: "Admin").onSuccess {
+                        vallaDao.upsert(entity.copy(isSynced = true))
+                    }
+                }
+            } catch (e: Exception) { }
+        }
 
         remoteDataSource.getVallas().onSuccess { dtos ->
+            val noSincronizados = vallaDao.observerAll().first().filter { !it.isSynced }
             vallaDao.clearAll()
-            dtos.forEach { vallaDao.upsert(it.toEntity()) }
+            vallaDao.upsertAll(dtos.map { it.toEntity() })
+            if (noSincronizados.isNotEmpty()) vallaDao.upsertAll(noSincronizados)
+
             vallaDao.observerAll().collect { freshLocal ->
                 emit(Resource.Succes(freshLocal.map { it.toDomain() }))
             }
@@ -35,55 +56,51 @@ class VallaRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun saveValla(valla: Valla): Flow<Resource<Valla>> = flow {
+        val tempId = if (valla.vallaId <= 0) (System.currentTimeMillis() % 1000000).toInt() * -1 else valla.vallaId
+        val localEntity = valla.toDto().toEntity().copy(vallaId = tempId, isSynced = false)
+        vallaDao.upsert(localEntity)
+        emit(Resource.Succes(localEntity.toDomain()))
+
+        val user = authRepository.getSession().firstOrNull()
+        remoteDataSource.saveValla(valla.toDto().copy(vallaId = 0), user?.rol ?: "Admin").onSuccess { dto ->
+            vallaDao.deleteById(tempId)
+            vallaDao.upsert(dto.toEntity().copy(isSynced = true))
+        }
+    }
+
+    override fun updateValla(id: Int, valla: Valla): Flow<Resource<Unit>> = flow {
+        val localEntity = valla.toDto().toEntity().copy(vallaId = id, isSynced = false)
+        vallaDao.upsert(localEntity)
+        emit(Resource.Succes(Unit))
+
+        val user = authRepository.getSession().firstOrNull()
+        remoteDataSource.updateValla(id, valla.toDto(), user?.rol ?: "Admin").onSuccess {
+            vallaDao.upsert(localEntity.copy(isSynced = true))
+        }
+    }
+
     override fun getValla(id: Int): Flow<Resource<Valla>> = flow {
         emit(Resource.Loading())
         vallaDao.getById(id)?.let { emit(Resource.Succes(it.toDomain())) }
-
         remoteDataSource.getValla(id).onSuccess { dto ->
             vallaDao.upsert(dto.toEntity())
             emit(Resource.Succes(dto.toDomain()))
         }
     }
 
-    override fun saveValla(valla: Valla): Flow<Resource<Valla>> = flow {
-        emit(Resource.Loading())
-        val user = authRepository.getSession().firstOrNull()
-        remoteDataSource.saveValla(valla.toDto(), user?.rol ?: "Admin").onSuccess { dto ->
-            vallaDao.upsert(dto.toEntity())
-            emit(Resource.Succes(dto.toDomain()))
-        }.onFailure {
-            emit(Resource.Error(it.message ?: "Error al guardar"))
-        }
-    }
-
-    override fun updateValla(id: Int, valla: Valla): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        val user = authRepository.getSession().firstOrNull()
-        remoteDataSource.updateValla(id, valla.toDto(), user?.rol ?: "Admin").onSuccess {
-            vallaDao.upsert(valla.toDto().toEntity())
-            emit(Resource.Succes(Unit))
-        }.onFailure {
-            emit(Resource.Error(it.message ?: "Error al actualizar"))
-        }
-    }
-
     override fun deleteValla(id: Int): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
+        vallaDao.deleteById(id)
+        emit(Resource.Succes(Unit))
         val user = authRepository.getSession().firstOrNull()
-        remoteDataSource.deleteValla(id, user?.rol ?: "Admin").onSuccess {
-            vallaDao.deleteById(id)
-            emit(Resource.Succes(Unit))
-        }.onFailure {
-            emit(Resource.Error(it.message ?: "Error al eliminar"))
-        }
+        remoteDataSource.deleteValla(id, user?.rol ?: "Admin")
     }
 
     override fun uploadImage(file: MultipartBody.Part): Flow<Resource<UploadResponseDto>> = flow {
         emit(Resource.Loading())
         remoteDataSource.uploadImage(file).onSuccess { dto ->
             emit(Resource.Succes(dto))
-        }.onFailure {
-            emit(Resource.Error(it.message ?: "Error al subir imagen"))
         }
     }
 }

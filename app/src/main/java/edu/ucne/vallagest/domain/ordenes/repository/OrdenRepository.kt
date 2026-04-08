@@ -9,4 +9,5 @@ interface OrdenRepository {
     fun realizarPago(usuarioId: Int, meses: Int, dto: CheckoutDto): Flow<Resource<Unit>>
     fun getHistorial(usuarioId: Int): Flow<Resource<List<Orden>>>
     fun cancelarOrden(ordenId: Int): Flow<Resource<Unit>>
+
 }

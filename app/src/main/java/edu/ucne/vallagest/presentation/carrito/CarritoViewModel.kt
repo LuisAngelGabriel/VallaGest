@@ -22,20 +22,21 @@ class CarritoViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        onEvent(CarritoUiEvent.LoadCarrito)
+        observarCarrito()
     }
 
     fun onEvent(event: CarritoUiEvent) {
         when (event) {
-            is CarritoUiEvent.LoadCarrito -> cargarCarrito()
+            is CarritoUiEvent.LoadCarrito -> observarCarrito()
             is CarritoUiEvent.EliminarItem -> eliminarItem(event.id)
         }
     }
 
-    private fun cargarCarrito() {
+    private fun observarCarrito() {
         viewModelScope.launch {
-            val user = authRepository.getSession().firstOrNull() ?: return@launch
-            getCarritoUseCase(user.usuarioId).collectLatest { result ->
+            authRepository.getSession().filterNotNull().flatMapLatest { usuario ->
+                getCarritoUseCase(usuario.usuarioId)
+            }.collect { result ->
                 when (result) {
                     is Resource.Succes -> {
                         val lista = result.data ?: emptyList()
@@ -45,8 +46,12 @@ class CarritoViewModel @Inject constructor(
                             total = lista.sumOf { it.precio }
                         )}
                     }
-                    is Resource.Error -> _state.update { it.copy(error = result.message, isLoading = false) }
-                    is Resource.Loading -> _state.update { it.copy(isLoading = true) }
+                    is Resource.Error -> {
+                        _state.update { it.copy(error = result.message, isLoading = false) }
+                    }
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = _state.value.items.isEmpty()) }
+                    }
                 }
             }
         }
@@ -55,8 +60,8 @@ class CarritoViewModel @Inject constructor(
     private fun eliminarItem(id: Int) {
         viewModelScope.launch {
             deleteCarritoUseCase(id).collectLatest { result ->
-                if (result is Resource.Succes) {
-                    cargarCarrito()
+                if (result is Resource.Error) {
+                    _state.update { it.copy(error = result.message) }
                 }
             }
         }

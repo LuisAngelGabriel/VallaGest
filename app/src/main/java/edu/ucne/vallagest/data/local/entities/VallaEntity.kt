@@ -15,5 +15,6 @@ data class VallaEntity(
     val imagenUrl: String?,
     val estaOcupada: Boolean,
     val categoriaId: Int,
-    val nombreCategoria: String?
+    val nombreCategoria: String?,
+    val isSynced: Boolean = true
 )
