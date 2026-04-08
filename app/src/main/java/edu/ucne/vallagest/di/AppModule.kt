@@ -11,14 +11,17 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import edu.ucne.vallagest.data.api.AuthApi
 import edu.ucne.vallagest.data.api.CategoriaApi
+import edu.ucne.vallagest.data.api.OrdenesApi
 import edu.ucne.vallagest.data.api.VallaApi
 import edu.ucne.vallagest.data.db.VallaGestDb
 import edu.ucne.vallagest.data.repository.AuthRepositoryImpl
 import edu.ucne.vallagest.data.repository.CarritoRepositoryImpl
 import edu.ucne.vallagest.data.repository.CategoriaRepositoryImpl
+import edu.ucne.vallagest.data.repository.OrdenRepositoryImpl
 import edu.ucne.vallagest.data.repository.VallaRepositoryImpl
 import edu.ucne.vallagest.domain.carrito.repository.CarritoRepository
 import edu.ucne.vallagest.domain.categorias.repository.CategoriaRepository
+import edu.ucne.vallagest.domain.ordenes.repository.OrdenRepository
 import edu.ucne.vallagest.domain.usuarios.repository.AuthRepository
 import edu.ucne.vallagest.domain.vallas.repository.UploadRepository
 import edu.ucne.vallagest.domain.vallas.repository.VallaRepository
@@ -65,6 +68,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideOrdenesApi(retrofit: Retrofit): OrdenesApi {
+        return retrofit.create(OrdenesApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideVallaGestDb(@ApplicationContext context: Context): VallaGestDb {
         return Room.databaseBuilder(context, VallaGestDb::class.java, "VallaGest.db")
             .fallbackToDestructiveMigration()
@@ -82,6 +91,9 @@ object AppModule {
 
     @Provides
     fun provideCarritoDao(db: VallaGestDb) = db.carritoDao()
+
+    @Provides
+    fun provideOrdenDao(db: VallaGestDb) = db.ordenDao()
 
     @Provides
     @Singleton
@@ -102,4 +114,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCarritoRepository(repository: CarritoRepositoryImpl): CarritoRepository = repository
+
+    @Provides
+    @Singleton
+    fun provideOrdenRepository(repository: OrdenRepositoryImpl): OrdenRepository = repository
 }
