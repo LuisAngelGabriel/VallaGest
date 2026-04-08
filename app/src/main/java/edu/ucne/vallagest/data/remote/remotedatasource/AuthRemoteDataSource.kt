@@ -39,4 +39,19 @@ class AuthRemoteDataSource @Inject constructor(
             Result.failure(Exception(e.localizedMessage ?: "Error desconocido"))
         }
     }
+
+    suspend fun actualizarUsuario(id: Int, request: RegisterRequest): Result<AuthResponse> {
+        return try {
+            val response = api.actualizarUsuario(id, request)
+            if (response.isSuccessful) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Error al actualizar perfil"))
+            }
+        } catch (e: HttpException) {
+            Result.failure(Exception(e.response()?.errorBody()?.string() ?: "Error de servidor"))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.localizedMessage ?: "Error desconocido"))
+        }
+    }
 }
