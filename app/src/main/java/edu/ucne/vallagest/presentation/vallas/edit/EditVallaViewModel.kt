@@ -123,10 +123,8 @@ class EditVallaViewModel @Inject constructor(
     private fun onSave() {
         if (!validate()) return
         val currentState = _state.value
-        if (currentState.isSaving) return
 
         viewModelScope.launch {
-            _state.update { it.copy(isSaving = true) }
             val valla = Valla(
                 vallaId = if (currentState.isNew) 0 else (currentState.vallaId ?: 0),
                 nombre = currentState.nombre,

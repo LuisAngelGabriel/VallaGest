@@ -18,6 +18,9 @@ interface VallaDao {
     @Upsert
     suspend fun upsert(valla: VallaEntity): Long
 
+    @Upsert
+    suspend fun upsertAll(vallas: List<VallaEntity>)
+
     @Delete
     suspend fun delete(valla: VallaEntity)
 

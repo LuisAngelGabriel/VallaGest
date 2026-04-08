@@ -14,10 +14,8 @@ class VallaRemoteDataSource @Inject constructor(
         return try {
             val response = api.getVallas()
             Result.success(response)
-        } catch (e: HttpException) {
-            Result.failure(Exception(e.response()?.errorBody()?.string() ?: "Error de servidor"))
         } catch (e: Exception) {
-            Result.failure(Exception(e.localizedMessage ?: "Error desconocido"))
+            Result.failure(e)
         }
     }
 

@@ -9,4 +9,5 @@ data class CategoriaEntity(
     val categoriaId: Int,
     val nombre: String,
     val descripcion: String,
+    val isSynced: Boolean = true
 )

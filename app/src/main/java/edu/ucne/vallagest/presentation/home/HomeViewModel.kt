@@ -42,10 +42,8 @@ class HomeViewModel @Inject constructor(
     fun observeVallas() {
         viewModelScope.launch {
             getVallasUseCase().collect { result ->
-                when (result) {
-                    is Resource.Loading -> _state.update { it.copy(isLoading = it.vallas.isEmpty()) }
-                    is Resource.Succes -> _state.update { it.copy(isLoading = false, vallas = result.data ?: emptyList()) }
-                    is Resource.Error -> _state.update { it.copy(isLoading = false) }
+                if (result is Resource.Succes) {
+                    _state.update { it.copy(isLoading = false, vallas = result.data ?: emptyList()) }
                 }
             }
         }
@@ -53,9 +51,8 @@ class HomeViewModel @Inject constructor(
 
     fun observeCarritoCount() {
         viewModelScope.launch {
-            val usuario = usuarioLogueado.value
-            usuario?.let {
-                getCarritoUseCase(it.usuarioId).collectLatest { result ->
+            usuarioLogueado.filterNotNull().collectLatest { usuario ->
+                getCarritoUseCase(usuario.usuarioId).collectLatest { result ->
                     if (result is Resource.Succes) {
                         _state.update { it.copy(carritoCount = result.data?.size ?: 0) }
                     }
@@ -64,27 +61,18 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onDelete(id: Int) {
-        viewModelScope.launch {
-            deleteVallaUseCase(id).collectLatest { result ->
-                if (result is Resource.Succes) {
-                    observeVallas()
-                }
-            }
-        }
-    }
-
     fun onAgregarAlCarrito(vallaId: Int) {
         viewModelScope.launch {
             val usuario = usuarioLogueado.value ?: return@launch
-            val item = CarritoPostDto(
-                usuarioId = usuario.usuarioId,
-                vallaId = vallaId
-            )
-            addCarritoUseCase(item).collectLatest { result ->
-                if (result is Resource.Succes) {
-                    observeCarritoCount()
-                }
+            val item = CarritoPostDto(usuarioId = usuario.usuarioId, vallaId = vallaId)
+            addCarritoUseCase(item).collectLatest { }
+        }
+    }
+
+    fun onDelete(id: Int) {
+        viewModelScope.launch {
+            deleteVallaUseCase(id).collectLatest { result ->
+                if (result is Resource.Succes) observeVallas()
             }
         }
     }

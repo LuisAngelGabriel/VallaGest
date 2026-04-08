@@ -9,5 +9,6 @@ data class Valla(
     val imagenUrl: String?,
     val estaOcupada: Boolean,
     val categoriaId: Int,
-    val nombreCategoria: String? = null
+    val nombreCategoria: String? = null,
+    val isSynced: Boolean = true
 )

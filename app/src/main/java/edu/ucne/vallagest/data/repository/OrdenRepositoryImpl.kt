@@ -27,7 +27,7 @@ class OrdenRepositoryImpl @Inject constructor(
             carritoDao.clearCarrito()
             emit(Resource.Succes(Unit))
         } else {
-            emit(Resource.Error(result.exceptionOrNull()?.message ?: "Error al procesar el pago"))
+            emit(Resource.Error(result.exceptionOrNull()?.message ?: "Error"))
         }
     }
 
@@ -44,9 +44,7 @@ class OrdenRepositoryImpl @Inject constructor(
                     ordenDao.insertDetalles(dto.detalles.map { it.toEntity(dto.ordenId) })
                 }
             }
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Error de conexión"))
-        }
+        } catch (e: Exception) { }
 
         val entidades = ordenDao.getOrdenes(usuarioId).first()
         val ordenesCompletas = entidades.map { ordenEntity ->
@@ -62,7 +60,7 @@ class OrdenRepositoryImpl @Inject constructor(
         if (result.isSuccess) {
             emit(Resource.Succes(Unit))
         } else {
-            emit(Resource.Error(result.exceptionOrNull()?.message ?: "Error al cancelar orden"))
+            emit(Resource.Error(result.exceptionOrNull()?.message ?: "Error"))
         }
     }
 }
