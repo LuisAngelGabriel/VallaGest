@@ -21,6 +21,7 @@ import edu.ucne.vallagest.presentation.ordenes.CheckoutScreen
 import edu.ucne.vallagest.presentation.pago.PagoTarjetaScreen
 import edu.ucne.vallagest.presentation.pago.PagoTransferenciaScreen
 import edu.ucne.vallagest.presentation.misalquileres.AlquileresScreen
+import edu.ucne.vallagest.presentation.editperfil.EditPerfilScreen
 
 @Composable
 fun VallaGestNavHost(navController: NavHostController) {
@@ -52,7 +53,13 @@ fun VallaGestNavHost(navController: NavHostController) {
                 onNavigateToExplorar = { navController.navigate(Screen.Home) },
                 onNavigateToCategorias = { navController.navigate(Screen.CategoriaList) },
                 onNavigateToCarrito = { navController.navigate(Screen.Carrito) },
-                onNavigateToAlquileres = { navController.navigate(Screen.Alquileres) }
+                onNavigateToAlquileres = { navController.navigate(Screen.Alquileres) },
+                onNavigateToEditarPerfil = { navController.navigate(Screen.EditarPerfil) }
+            )
+        }
+        composable<Screen.EditarPerfil> {
+            EditPerfilScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable<Screen.Alquileres> {
