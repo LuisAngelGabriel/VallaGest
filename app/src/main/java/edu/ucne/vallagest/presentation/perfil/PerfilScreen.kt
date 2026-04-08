@@ -31,6 +31,7 @@ fun PerfilScreen(
     onNavigateToCategorias: () -> Unit,
     onNavigateToCarrito: () -> Unit,
     onNavigateToAlquileres: () -> Unit,
+    onNavigateToEditarPerfil: () -> Unit,
     viewModel: PerfilViewModel = hiltViewModel()
 ) {
     val usuario by viewModel.usuario.collectAsStateWithLifecycle()
@@ -120,7 +121,7 @@ fun PerfilScreen(
                 ActivityItem(
                     icon = Icons.Default.Edit,
                     label = "Editar Perfil",
-                    onClick = { }
+                    onClick = onNavigateToEditarPerfil
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
