@@ -40,6 +40,7 @@ fun HomeScreen(
     val usuario by viewModel.usuarioLogueado.collectAsStateWithLifecycle()
     val isAdmin = usuario?.rol == "Admin"
     var searchText by remember { mutableStateOf("") }
+    var vallaAEliminar by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.observeVallas()
@@ -145,7 +146,7 @@ fun HomeScreen(
                         valla = valla,
                         isAdmin = isAdmin,
                         onEdit = { goToValla(valla.vallaId) },
-                        onDelete = { viewModel.onDelete(valla.vallaId) },
+                        onDelete = { vallaAEliminar = valla.vallaId },
                         onClick = { goToValla(valla.vallaId) },
                         onAddToCart = {
                             viewModel.onAgregarAlCarrito(valla.vallaId)
@@ -154,6 +155,29 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    vallaAEliminar?.let { id ->
+        AlertDialog(
+            onDismissRequest = { vallaAEliminar = null },
+            title = { Text("Eliminar") },
+            text = { Text("¿Deseas eliminar esta valla?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onDelete(id)
+                        vallaAEliminar = null
+                    }
+                ) {
+                    Text("ELIMINAR", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { vallaAEliminar = null }) {
+                    Text("CANCELAR")
+                }
+            }
+        )
     }
 }
 
