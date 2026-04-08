@@ -3,7 +3,9 @@ package edu.ucne.vallagest.presentation.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -40,11 +42,21 @@ fun HomeScreen(
     val usuario by viewModel.usuarioLogueado.collectAsStateWithLifecycle()
     val isAdmin = usuario?.rol == "Admin"
     var searchText by remember { mutableStateOf("") }
+    var categoriaSeleccionada by remember { mutableStateOf("Todas") }
     var vallaAEliminar by remember { mutableStateOf<Int?>(null) }
+
+    val categoriasNegocio = listOf("Todas", "Valla LED", "Valla Estatica", "Valla Movil")
 
     LaunchedEffect(Unit) {
         viewModel.observeVallas()
         viewModel.observeCarritoCount()
+    }
+
+    val vallasFiltradas = state.vallas.filter { valla ->
+        val cumpleUbicacion = valla.ubicacion.contains(searchText, ignoreCase = true)
+        val cumpleCategoria = if (categoriaSeleccionada == "Todas") true
+        else valla.nombre.contains(categoriaSeleccionada, ignoreCase = true)
+        cumpleUbicacion && cumpleCategoria
     }
 
     Scaffold(
@@ -69,9 +81,7 @@ fun HomeScreen(
                         BadgedBox(
                             badge = {
                                 if (state.carritoCount > 0) {
-                                    Badge {
-                                        Text(state.carritoCount.toString())
-                                    }
+                                    Badge { Text(state.carritoCount.toString()) }
                                 }
                             }
                         ) {
@@ -125,12 +135,36 @@ fun HomeScreen(
                         value = searchText,
                         onValueChange = { searchText = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Buscar ciudad o avenida...") },
-                        leadingIcon = { Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.primary) },
+                        placeholder = { Text("Buscar por ubicación...") },
+                        leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.primary) },
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(categoriasNegocio) { categoria ->
+                            FilterChip(
+                                selected = categoriaSeleccionada == categoria,
+                                onClick = { categoriaSeleccionada = categoria },
+                                label = { Text(categoria) },
+                                shape = RoundedCornerShape(20.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
 
@@ -141,16 +175,14 @@ fun HomeScreen(
                     }
                 }
             } else {
-                items(state.vallas.filter { it.nombre.contains(searchText, true) }) { valla ->
+                items(vallasFiltradas) { valla ->
                     VallaGridItem(
                         valla = valla,
                         isAdmin = isAdmin,
                         onEdit = { goToValla(valla.vallaId) },
                         onDelete = { vallaAEliminar = valla.vallaId },
                         onClick = { goToValla(valla.vallaId) },
-                        onAddToCart = {
-                            viewModel.onAgregarAlCarrito(valla.vallaId)
-                        }
+                        onAddToCart = { viewModel.onAgregarAlCarrito(valla.vallaId) }
                     )
                 }
             }
@@ -229,7 +261,8 @@ fun VallaGridItem(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(6.dp)
-                        .size(30.dp)
+                        .size(30.dp),
+                    enabled = !valla.estaOcupada
                 ) {
                     Icon(
                         imageVector = if (valla.estaOcupada) Icons.Default.Block else Icons.Default.AddShoppingCart,
@@ -241,9 +274,7 @@ fun VallaGridItem(
 
                 if (isAdmin) {
                     Row(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(6.dp),
+                        modifier = Modifier.align(Alignment.TopEnd).padding(6.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Surface(
@@ -283,7 +314,7 @@ fun VallaGridItem(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "RD$ ${valla.precioMensual}/mes",
+                    "RD$ ${String.format("%,.0f", valla.precioMensual)}/mes",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp
