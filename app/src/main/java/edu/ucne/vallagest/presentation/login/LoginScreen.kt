@@ -51,7 +51,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.vallagest_logo),
+                painter = painterResource(id = R.drawable.logovallagest),
                 contentDescription = "VallaGest Logo",
                 modifier = Modifier.size(130.dp)
             )
