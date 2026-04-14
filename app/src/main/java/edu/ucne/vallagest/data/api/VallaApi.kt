@@ -45,4 +45,7 @@ interface VallaApi {
 
     @DELETE("api/Carrito/{id}")
     suspend fun eliminarDelCarrito(@Path("id") id: Int): Response<Unit>
+
+    @GET("api/VallasOcupadas")
+    suspend fun getVallasOcupadas(): List<VallaOcupadaDto>
 }
