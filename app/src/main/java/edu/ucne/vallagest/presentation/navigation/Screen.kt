@@ -37,4 +37,6 @@ sealed class Screen {
 
     @Serializable
     data object EditarPerfil : Screen()
+    @Serializable
+    data object VallasOcupadas : Screen()
 }
