@@ -8,7 +8,6 @@ La aplicación utiliza una arquitectura **Offline-First**, lo que garantiza su f
 1.  **Almacenamiento Local:** Todos los datos se registran primero en una base de datos local (Room).
 2.  **Sincronización Inteligente:** Al detectar una conexión estable, el sistema sincroniza automáticamente los datos locales con un servidor central (API REST).
 3.  **Gestión de Pagos:** Incluye un flujo para registrar pagos por transferencia bancaria (con carga de comprobantes) y simulaciones de pago con tarjeta.
-4.  **Cero Duplicados:** Implementa una lógica de limpieza de IDs temporales que asegura la integridad de los datos durante la sincronización.
 
 ## Tecnologías Utilizadas
 * **Lenguaje:** [Kotlin](https://kotlinlang.org/)
