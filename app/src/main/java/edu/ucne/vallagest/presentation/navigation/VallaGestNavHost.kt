@@ -35,7 +35,11 @@ fun VallaGestNavHost(navController: NavHostController) {
         }
         composable<Screen.Register> {
             RegisterScreen(
-                onRegisterSuccess = { navController.navigate(Screen.Home) { popUpTo(Screen.Register) { inclusive = true } } },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
+                },
                 onBackToLogin = { navController.popBackStack() }
             )
         }
