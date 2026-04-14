@@ -1,5 +1,6 @@
 package edu.ucne.vallagest.presentation.pago
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +33,7 @@ fun PagoTarjetaScreen(
     viewModel: OrdenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var nombreHabilitado by remember { mutableStateOf("") }
     var numeroTarjeta by remember { mutableStateOf("") }
@@ -48,7 +51,10 @@ fun PagoTarjetaScreen(
     }
 
     LaunchedEffect(state.pagoExitoso) {
-        if (state.pagoExitoso) onPagoExitoso()
+        if (state.pagoExitoso) {
+            Toast.makeText(context, "Pago realizado con éxito", Toast.LENGTH_LONG).show()
+            onPagoExitoso()
+        }
     }
 
     Scaffold(

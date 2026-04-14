@@ -48,7 +48,7 @@ class RegisterViewModel @Inject constructor(
         }
 
         if (!s.email.contains("@")) {
-            _state.update { it.copy(error = "El correo debe contener un @") }
+            _state.update { it.copy(error = "El formato de correo no es correcto") }
             return
         }
 

@@ -1,5 +1,6 @@
 package edu.ucne.vallagest.presentation.pago
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -47,7 +48,10 @@ fun PagoTransferenciaScreen(
     }
 
     LaunchedEffect(state.pagoExitoso) {
-        if (state.pagoExitoso) onPagoExitoso()
+        if (state.pagoExitoso) {
+            Toast.makeText(context, "Pago realizado con éxito", Toast.LENGTH_LONG).show()
+            onPagoExitoso()
+        }
     }
 
     Scaffold(
