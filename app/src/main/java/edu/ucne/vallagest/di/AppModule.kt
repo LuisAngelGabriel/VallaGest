@@ -14,16 +14,13 @@ import edu.ucne.vallagest.data.api.CategoriaApi
 import edu.ucne.vallagest.data.api.OrdenesApi
 import edu.ucne.vallagest.data.api.VallaApi
 import edu.ucne.vallagest.data.db.VallaGestDb
-import edu.ucne.vallagest.data.repository.AuthRepositoryImpl
-import edu.ucne.vallagest.data.repository.CarritoRepositoryImpl
-import edu.ucne.vallagest.data.repository.CategoriaRepositoryImpl
-import edu.ucne.vallagest.data.repository.OrdenRepositoryImpl
-import edu.ucne.vallagest.data.repository.VallaRepositoryImpl
+import edu.ucne.vallagest.data.repository.*
 import edu.ucne.vallagest.domain.carrito.repository.CarritoRepository
 import edu.ucne.vallagest.domain.categorias.repository.CategoriaRepository
 import edu.ucne.vallagest.domain.ordenes.repository.OrdenRepository
 import edu.ucne.vallagest.domain.usuarios.repository.AuthRepository
 import edu.ucne.vallagest.domain.vallas.repository.UploadRepository
+import edu.ucne.vallagest.domain.vallas.repository.VallaOcupadaRepository
 import edu.ucne.vallagest.domain.vallas.repository.VallaRepository
 import javax.inject.Singleton
 import retrofit2.Retrofit
@@ -96,6 +93,9 @@ object AppModule {
     fun provideOrdenDao(db: VallaGestDb) = db.ordenDao()
 
     @Provides
+    fun provideVallaOcupadaDao(db: VallaGestDb) = db.vallaOcupadaDao()
+
+    @Provides
     @Singleton
     fun provideVallaRepository(repository: VallaRepositoryImpl): VallaRepository = repository
 
@@ -118,4 +118,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOrdenRepository(repository: OrdenRepositoryImpl): OrdenRepository = repository
+
+    @Provides
+    @Singleton
+    fun provideVallaOcupadaRepository(repository: VallaOcupadaRepositoryImpl): VallaOcupadaRepository = repository
 }

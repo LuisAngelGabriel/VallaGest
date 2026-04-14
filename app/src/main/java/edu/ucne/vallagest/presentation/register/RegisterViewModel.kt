@@ -22,7 +22,11 @@ class RegisterViewModel @Inject constructor(
 
     fun onEvent(event: RegisterEvent) {
         when (event) {
-            is RegisterEvent.NombreChanged -> _state.update { it.copy(nombre = event.nombre, error = null) }
+            is RegisterEvent.NombreChanged -> {
+                if (event.nombre.all { it.isLetter() || it.isWhitespace() }) {
+                    _state.update { it.copy(nombre = event.nombre, error = null) }
+                }
+            }
             is RegisterEvent.EmailChanged -> _state.update { it.copy(email = event.email, error = null) }
             is RegisterEvent.ClaveChanged -> _state.update { it.copy(clave = event.clave, error = null) }
             is RegisterEvent.ConfirmarClaveChanged -> _state.update { it.copy(confirmarClave = event.clave, error = null) }
@@ -35,6 +39,16 @@ class RegisterViewModel @Inject constructor(
 
         if (s.nombre.isBlank() || s.email.isBlank() || s.clave.isBlank() || s.confirmarClave.isBlank()) {
             _state.update { it.copy(error = "Todos los campos son obligatorios") }
+            return
+        }
+
+        if (!s.nombre.all { it.isLetter() || it.isWhitespace() }) {
+            _state.update { it.copy(error = "El nombre no puede contener números ni caracteres especiales") }
+            return
+        }
+
+        if (!s.email.contains("@")) {
+            _state.update { it.copy(error = "El formato de correo no es correcto") }
             return
         }
 

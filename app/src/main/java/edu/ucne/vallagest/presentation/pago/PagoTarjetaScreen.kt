@@ -1,5 +1,6 @@
 package edu.ucne.vallagest.presentation.pago
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +33,7 @@ fun PagoTarjetaScreen(
     viewModel: OrdenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     var nombreHabilitado by remember { mutableStateOf("") }
     var numeroTarjeta by remember { mutableStateOf("") }
@@ -48,7 +51,10 @@ fun PagoTarjetaScreen(
     }
 
     LaunchedEffect(state.pagoExitoso) {
-        if (state.pagoExitoso) onPagoExitoso()
+        if (state.pagoExitoso) {
+            Toast.makeText(context, "Pago realizado con éxito", Toast.LENGTH_LONG).show()
+            onPagoExitoso()
+        }
     }
 
     Scaffold(
@@ -66,7 +72,7 @@ fun PagoTarjetaScreen(
         Column(Modifier.padding(padding).padding(24.dp).fillMaxSize()) {
             OutlinedTextField(
                 value = nombreHabilitado,
-                onValueChange = { nombreHabilitado = it },
+                onValueChange = { if (it.all { char -> char.isLetter() || char.isWhitespace() }) nombreHabilitado = it },
                 label = { Text("Nombre en la tarjeta") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -76,7 +82,7 @@ fun PagoTarjetaScreen(
 
             OutlinedTextField(
                 value = numeroTarjeta,
-                onValueChange = { if (it.length <= 16) numeroTarjeta = it },
+                onValueChange = { if (it.length <= 16 && it.all { char -> char.isDigit() }) numeroTarjeta = it },
                 label = { Text("Número de Tarjeta") },
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 shape = RoundedCornerShape(12.dp),
@@ -90,15 +96,15 @@ fun PagoTarjetaScreen(
             ) {
                 OutlinedTextField(
                     value = fechaExpiracion,
-                    onValueChange = { if (it.length <= 4) fechaExpiracion = it },
-                    label = { Text("MM/AA") },
+                    onValueChange = { if (it.length <= 4 && it.all { char -> char.isDigit() }) fechaExpiracion = it },
+                    label = { Text("MMAA") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = cvv,
-                    onValueChange = { if (it.length <= 3) cvv = it },
+                    onValueChange = { if (it.length <= 3 && it.all { char -> char.isDigit() }) cvv = it },
                     label = { Text("CVV") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),

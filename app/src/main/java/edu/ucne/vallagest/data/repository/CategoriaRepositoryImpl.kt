@@ -1,6 +1,7 @@
 package edu.ucne.vallagest.data.repository
 
 import edu.ucne.vallagest.data.local.dao.CategoriaDao
+import edu.ucne.vallagest.data.local.entities.CategoriaEntity
 import edu.ucne.vallagest.data.mappers.*
 import edu.ucne.vallagest.data.remote.Resource
 import edu.ucne.vallagest.data.remotedatasource.CategoriaRemoteDataSource
@@ -22,7 +23,7 @@ class CategoriaRepositoryImpl @Inject constructor(
         emit(Resource.Succes(local.map { it.toDomain() }))
 
         val user = authRepository.getSession().firstOrNull()
-        val pendientes = categoriaDao.observerAll().first().filter { !it.isSynced }
+        val pendientes = local.filter { !it.isSynced }
 
         pendientes.forEach { entity ->
             try {
@@ -42,7 +43,7 @@ class CategoriaRepositoryImpl @Inject constructor(
         remoteDataSource.getCategorias().onSuccess { dtos ->
             val noSincronizados = categoriaDao.observerAll().first().filter { !it.isSynced }
             categoriaDao.clearAll()
-            categoriaDao.upsertAll(dtos.map { it.toEntity() })
+            categoriaDao.upsertAll(dtos.map { it.toEntity().copy(isSynced = true) })
             if (noSincronizados.isNotEmpty()) categoriaDao.upsertAll(noSincronizados)
 
             categoriaDao.observerAll().collect { updatedLocal ->
@@ -54,26 +55,36 @@ class CategoriaRepositoryImpl @Inject constructor(
     }
 
     override fun saveCategoria(categoria: Categoria): Flow<Resource<Categoria>> = flow {
+        emit(Resource.Loading())
         val tempId = if (categoria.categoriaId <= 0) (System.currentTimeMillis() % 1000000).toInt() * -1 else categoria.categoriaId
-        val localEntity = categoria.toDto().toEntity().copy(categoriaId = tempId, isSynced = false)
+        val localEntity = categoria.toEntity().copy(categoriaId = tempId, isSynced = false)
         categoriaDao.upsert(localEntity)
-        emit(Resource.Succes(localEntity.toDomain()))
 
         val user = authRepository.getSession().firstOrNull()
         remoteDataSource.saveCategoria(categoria.toDto().copy(categoriaId = 0), user?.rol ?: "Admin").onSuccess { dto ->
             categoriaDao.deleteById(tempId)
-            categoriaDao.upsert(dto.toEntity().copy(isSynced = true))
+            val serverEntity = dto.toEntity().copy(isSynced = true)
+            categoriaDao.upsert(serverEntity)
+            emit(Resource.Succes(serverEntity.toDomain()))
+        }.onFailure {
+            emit(Resource.Succes(localEntity.toDomain()))
+            emit(Resource.Error(it.message ?: "Error al sincronizar"))
         }
     }
 
     override fun updateCategoria(id: Int, categoria: Categoria): Flow<Resource<Categoria>> = flow {
-        val localEntity = categoria.toDto().toEntity().copy(categoriaId = id, isSynced = false)
+        emit(Resource.Loading())
+        val localEntity = categoria.toEntity().copy(categoriaId = id, isSynced = false)
         categoriaDao.upsert(localEntity)
-        emit(Resource.Succes(categoria))
 
         val user = authRepository.getSession().firstOrNull()
         remoteDataSource.updateCategoria(id, categoria.toDto(), user?.rol ?: "Admin").onSuccess {
-            categoriaDao.upsert(localEntity.copy(isSynced = true))
+            val syncedEntity = localEntity.copy(isSynced = true)
+            categoriaDao.upsert(syncedEntity)
+            emit(Resource.Succes(syncedEntity.toDomain()))
+        }.onFailure {
+            emit(Resource.Succes(categoria))
+            emit(Resource.Error(it.message ?: "Error al actualizar"))
         }
     }
 
@@ -81,7 +92,7 @@ class CategoriaRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         categoriaDao.getById(id)?.let { emit(Resource.Succes(it.toDomain())) }
         remoteDataSource.getCategoria(id).onSuccess { dto ->
-            categoriaDao.upsert(dto.toEntity())
+            categoriaDao.upsert(dto.toEntity().copy(isSynced = true))
             emit(Resource.Succes(dto.toDomain()))
         }
     }

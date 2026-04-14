@@ -22,6 +22,7 @@ import edu.ucne.vallagest.presentation.pago.PagoTarjetaScreen
 import edu.ucne.vallagest.presentation.pago.PagoTransferenciaScreen
 import edu.ucne.vallagest.presentation.misalquileres.AlquileresScreen
 import edu.ucne.vallagest.presentation.editperfil.EditPerfilScreen
+import edu.ucne.vallagest.presentation.vallasocupadas.VallaOcupadaScreen
 
 @Composable
 fun VallaGestNavHost(navController: NavHostController) {
@@ -34,7 +35,11 @@ fun VallaGestNavHost(navController: NavHostController) {
         }
         composable<Screen.Register> {
             RegisterScreen(
-                onRegisterSuccess = { navController.navigate(Screen.Home) { popUpTo(Screen.Register) { inclusive = true } } },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
+                },
                 onBackToLogin = { navController.popBackStack() }
             )
         }
@@ -54,7 +59,8 @@ fun VallaGestNavHost(navController: NavHostController) {
                 onNavigateToCategorias = { navController.navigate(Screen.CategoriaList) },
                 onNavigateToCarrito = { navController.navigate(Screen.Carrito) },
                 onNavigateToAlquileres = { navController.navigate(Screen.Alquileres) },
-                onNavigateToEditarPerfil = { navController.navigate(Screen.EditarPerfil) }
+                onNavigateToEditarPerfil = { navController.navigate(Screen.EditarPerfil) },
+                onNavigateToVallasOcupadas = { navController.navigate(Screen.VallasOcupadas) }
             )
         }
         composable<Screen.EditarPerfil> {
@@ -64,6 +70,11 @@ fun VallaGestNavHost(navController: NavHostController) {
         }
         composable<Screen.Alquileres> {
             AlquileresScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable<Screen.VallasOcupadas> {
+            VallaOcupadaScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

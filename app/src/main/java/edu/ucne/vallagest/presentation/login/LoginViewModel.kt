@@ -34,8 +34,13 @@ class LoginViewModel @Inject constructor(
         val email = _state.value.email
         val password = _state.value.password
 
-        if (email.isBlank() || password.isBlank()) {
-            _state.update { it.copy(error = "Debes completar todos los campos") }
+        if (email.isBlank()) {
+            _state.update { it.copy(error = "El correo es requerido") }
+            return
+        }
+
+        if (password.isBlank()) {
+            _state.update { it.copy(error = "La contraseña es requerida") }
             return
         }
 
@@ -48,7 +53,13 @@ class LoginViewModel @Inject constructor(
                     _state.update { it.copy(isLoading = false, success = result.data) }
                 }
                 is Resource.Error -> {
-                    _state.update { it.copy(isLoading = false, error = result.message, success = null) }
+                    val errorMessage = when {
+                        result.message?.contains("contraseña", ignoreCase = true) == true -> "Contraseña incorrecta"
+                        result.message?.contains("correo", ignoreCase = true) == true -> "Correo incorrecto"
+                        result.message?.contains("usuario", ignoreCase = true) == true -> "Usuario no encontrado"
+                        else -> result.message ?: "Error al iniciar sesión"
+                    }
+                    _state.update { it.copy(isLoading = false, error = errorMessage, success = null) }
                 }
             }
         }.launchIn(viewModelScope)

@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -32,6 +31,7 @@ fun PerfilScreen(
     onNavigateToCarrito: () -> Unit,
     onNavigateToAlquileres: () -> Unit,
     onNavigateToEditarPerfil: () -> Unit,
+    onNavigateToVallasOcupadas: () -> Unit,
     viewModel: PerfilViewModel = hiltViewModel()
 ) {
     val usuario by viewModel.usuario.collectAsStateWithLifecycle()
@@ -132,6 +132,23 @@ fun PerfilScreen(
                     onClick = onNavigateToAlquileres
                 )
 
+                if (usuario?.rol == "Admin") {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        "Administración",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ActivityItem(
+                        icon = Icons.Default.AdminPanelSettings,
+                        label = "Panel: Vallas Ocupadas",
+                        onClick = onNavigateToVallasOcupadas
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Button(
@@ -146,6 +163,7 @@ fun PerfilScreen(
                     Spacer(Modifier.width(8.dp))
                     Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
                 }
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
     }
