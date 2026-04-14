@@ -7,7 +7,6 @@ import edu.ucne.vallagest.data.remote.dto.VallaOcupadaDto
 import edu.ucne.vallagest.domain.vallas.model.Valla
 import edu.ucne.vallagest.domain.vallas.model.VallaOcupada
 
-
 fun VallaDto.toEntity() = VallaEntity(
     vallaId = vallaId,
     nombre = nombre,
@@ -46,6 +45,19 @@ fun Valla.toDto() = VallaDto(
     nombreCategoria = nombreCategoria
 )
 
+fun Valla.toEntity() = VallaEntity(
+    vallaId = vallaId,
+    nombre = nombre,
+    descripcion = descripcion,
+    ubicacion = ubicacion,
+    precioMensual = precioMensual,
+    imagenUrl = imagenUrl,
+    estaOcupada = estaOcupada,
+    categoriaId = categoriaId,
+    nombreCategoria = nombreCategoria,
+    isSynced = isSynced
+)
+
 fun VallaDto.toDomain() = Valla(
     vallaId = vallaId,
     nombre = nombre,
@@ -58,7 +70,6 @@ fun VallaDto.toDomain() = Valla(
     nombreCategoria = nombreCategoria,
     isSynced = true
 )
-
 
 fun VallaOcupadaDto.toEntity() = VallaOcupadaEntity(
     vallaId = vallaId,

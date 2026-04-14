@@ -24,6 +24,13 @@ fun Categoria.toDto() = CategoriaDto(
     descripcion = descripcion
 )
 
+fun Categoria.toEntity() = CategoriaEntity(
+    categoriaId = categoriaId,
+    nombre = nombre,
+    descripcion = descripcion,
+    isSynced = isSynced
+)
+
 fun CategoriaDto.toDomain() = Categoria(
     categoriaId = categoriaId,
     nombre = nombre,

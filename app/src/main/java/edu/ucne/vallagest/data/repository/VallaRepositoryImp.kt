@@ -1,6 +1,8 @@
 package edu.ucne.vallagest.data.repository
 
 import edu.ucne.vallagest.data.local.dao.VallaDao
+import edu.ucne.vallagest.data.local.entities.VallaEntity
+import edu.ucne.vallagest.data.remote.dto.VallaDto
 import edu.ucne.vallagest.data.mappers.*
 import edu.ucne.vallagest.data.remote.Resource
 import edu.ucne.vallagest.data.remote.dto.UploadResponseDto
@@ -25,12 +27,12 @@ class VallaRepositoryImpl @Inject constructor(
         emit(Resource.Succes(local.map { it.toDomain() }))
 
         val user = authRepository.getSession().firstOrNull()
-        val pendientes = vallaDao.observerAll().first().filter { !it.isSynced }
+        val pendientes = local.filter { !it.isSynced }
 
         pendientes.forEach { entity ->
             try {
                 if (entity.vallaId < 0) {
-                    remoteDataSource.saveValla(entity.toDomain().toDto().copy(vallaId = 0), user?.rol ?: "Admin").onSuccess { dto ->
+                    remoteDataSource.saveValla(entity.toDomain().toDto().copy(vallaId = 0), user?.rol ?: "Admin").onSuccess { dto: VallaDto ->
                         vallaDao.deleteById(entity.vallaId)
                         vallaDao.upsert(dto.toEntity().copy(isSynced = true))
                     }
@@ -45,7 +47,7 @@ class VallaRepositoryImpl @Inject constructor(
         remoteDataSource.getVallas().onSuccess { dtos ->
             val noSincronizados = vallaDao.observerAll().first().filter { !it.isSynced }
             vallaDao.clearAll()
-            vallaDao.upsertAll(dtos.map { it.toEntity() })
+            vallaDao.upsertAll(dtos.map { it.toEntity().copy(isSynced = true) })
             if (noSincronizados.isNotEmpty()) vallaDao.upsertAll(noSincronizados)
 
             vallaDao.observerAll().collect { freshLocal ->
@@ -57,34 +59,43 @@ class VallaRepositoryImpl @Inject constructor(
     }
 
     override fun saveValla(valla: Valla): Flow<Resource<Valla>> = flow {
+        emit(Resource.Loading())
         val tempId = if (valla.vallaId <= 0) (System.currentTimeMillis() % 1000000).toInt() * -1 else valla.vallaId
-        val localEntity = valla.toDto().toEntity().copy(vallaId = tempId, isSynced = false)
+        val localEntity = valla.toEntity().copy(vallaId = tempId, isSynced = false)
         vallaDao.upsert(localEntity)
-        emit(Resource.Succes(localEntity.toDomain()))
 
         val user = authRepository.getSession().firstOrNull()
-        remoteDataSource.saveValla(valla.toDto().copy(vallaId = 0), user?.rol ?: "Admin").onSuccess { dto ->
+        remoteDataSource.saveValla(valla.toDto().copy(vallaId = 0), user?.rol ?: "Admin").onSuccess { dto: VallaDto ->
             vallaDao.deleteById(tempId)
-            vallaDao.upsert(dto.toEntity().copy(isSynced = true))
+            val serverEntity = dto.toEntity().copy(isSynced = true)
+            vallaDao.upsert(serverEntity)
+            emit(Resource.Succes(serverEntity.toDomain()))
+        }.onFailure {
+            emit(Resource.Succes(localEntity.toDomain()))
+            emit(Resource.Error(it.message ?: "Error al sincronizar"))
         }
     }
 
     override fun updateValla(id: Int, valla: Valla): Flow<Resource<Unit>> = flow {
-        val localEntity = valla.toDto().toEntity().copy(vallaId = id, isSynced = false)
+        emit(Resource.Loading())
+        val localEntity = valla.toEntity().copy(vallaId = id, isSynced = false)
         vallaDao.upsert(localEntity)
-        emit(Resource.Succes(Unit))
 
         val user = authRepository.getSession().firstOrNull()
         remoteDataSource.updateValla(id, valla.toDto(), user?.rol ?: "Admin").onSuccess {
             vallaDao.upsert(localEntity.copy(isSynced = true))
+            emit(Resource.Succes(Unit))
+        }.onFailure {
+            emit(Resource.Succes(Unit))
+            emit(Resource.Error(it.message ?: "Error al actualizar"))
         }
     }
 
     override fun getValla(id: Int): Flow<Resource<Valla>> = flow {
         emit(Resource.Loading())
         vallaDao.getById(id)?.let { emit(Resource.Succes(it.toDomain())) }
-        remoteDataSource.getValla(id).onSuccess { dto ->
-            vallaDao.upsert(dto.toEntity())
+        remoteDataSource.getValla(id).onSuccess { dto: VallaDto ->
+            vallaDao.upsert(dto.toEntity().copy(isSynced = true))
             emit(Resource.Succes(dto.toDomain()))
         }
     }

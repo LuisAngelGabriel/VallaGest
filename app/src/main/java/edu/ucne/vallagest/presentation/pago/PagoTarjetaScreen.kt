@@ -72,7 +72,7 @@ fun PagoTarjetaScreen(
         Column(Modifier.padding(padding).padding(24.dp).fillMaxSize()) {
             OutlinedTextField(
                 value = nombreHabilitado,
-                onValueChange = { nombreHabilitado = it },
+                onValueChange = { if (it.all { char -> char.isLetter() || char.isWhitespace() }) nombreHabilitado = it },
                 label = { Text("Nombre en la tarjeta") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -82,7 +82,7 @@ fun PagoTarjetaScreen(
 
             OutlinedTextField(
                 value = numeroTarjeta,
-                onValueChange = { if (it.length <= 16) numeroTarjeta = it },
+                onValueChange = { if (it.length <= 16 && it.all { char -> char.isDigit() }) numeroTarjeta = it },
                 label = { Text("Número de Tarjeta") },
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 shape = RoundedCornerShape(12.dp),
@@ -96,15 +96,15 @@ fun PagoTarjetaScreen(
             ) {
                 OutlinedTextField(
                     value = fechaExpiracion,
-                    onValueChange = { if (it.length <= 4) fechaExpiracion = it },
-                    label = { Text("MM/AA") },
+                    onValueChange = { if (it.length <= 4 && it.all { char -> char.isDigit() }) fechaExpiracion = it },
+                    label = { Text("MMAA") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = cvv,
-                    onValueChange = { if (it.length <= 3) cvv = it },
+                    onValueChange = { if (it.length <= 3 && it.all { char -> char.isDigit() }) cvv = it },
                     label = { Text("CVV") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
